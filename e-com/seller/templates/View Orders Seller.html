@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {}
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-200">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Order Management</h1>
+                <p class="text-gray-600 dark:text-gray-400 mt-2">View and manage all customer orders</p>
+            </div>
+            <button id="theme-toggle" class="flex items-center justify-center p-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                <!-- Sun icon (for dark mode) -->
+                <svg id="sun-icon" class="hidden dark:block w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                <!-- Moon icon (for light mode) -->
+                <svg id="moon-icon" class="block dark:hidden w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                </svg>
+            </button>
+        </header>
+
+        <!-- Filters and Actions -->
+        <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="flex flex-col sm:flex-row gap-3">
+                <div class="relative">
+                    <input type="text" id="search-input" placeholder="Search orders..." 
+                        class="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-64 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <select id="status-filter" class="border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    <option value="all">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="processing">Processing</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+                <select id="date-filter" class="border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    <option value="all">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="quarter">Last 3 Months</option>
+                </select>
+            </div>
+            <div>
+                <button id="export-btn" class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors">
+                    Export CSV
+                </button>
+            </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer" data-sort="id">
+                                Order ID
+                                <span class="ml-1 inline-block">↓</span>
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer" data-sort="customer">
+                                Customer
+                                <span class="ml-1 inline-block"></span>
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer" data-sort="date">
+                                Date
+                                <span class="ml-1 inline-block"></span>
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer" data-sort="total">
+                                Total
+                                <span class="ml-1 inline-block"></span>
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table-body" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        <!-- Table rows will be inserted here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden py-12 text-center">
+                <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No orders found</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Try adjusting your search or filter to find what you're looking for.</p>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="bg-white dark:bg-gray-800 px-4 py-3 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 sm:px-6">
+                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm text-gray-700 dark:text-gray-300">
+                            Showing <span id="page-start" class="font-medium">1</span> to <span id="page-end" class="font-medium">10</span> of <span id="total-items" class="font-medium">--</span> results
+                        </p>
+                    </div>
+                    <div>
+                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                            <button id="prev-page" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <span class="sr-only">Previous</span>
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <div id="pagination-numbers" class="flex">
+                                <!-- Pagination numbers will be inserted here by JavaScript -->
+                            </div>
+                            <button id="next-page" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <span class="sr-only">Next</span>
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div id="order-modal" class="fixed inset-0 bg-gray-500 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg max-w-3xl w-full mx-4 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Order Details - #<span id="modal-order-id"></span></h3>
+                <button id="close-modal" class="text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="px-6 py-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">Customer Information</h4>
+                        <p class="mt-2 text-sm text-gray-900 dark:text-gray-100" id="modal-customer-name">--</p>
+                        <p class="text-sm text-gray-900 dark:text-gray-100" id="modal-customer-email">--</p>
+                        <p class="text-sm text-gray-900 dark:text-gray-100" id="modal-customer-phone">--</p>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">Order Information</h4>
+                        <p class="mt-2 text-sm text-gray-900 dark:text-gray-100">Date: <span id="modal-order-date">--</span></p>
+                        <p class="text-sm text-gray-900 dark:text-gray-100">Status: <span id="modal-order-status">--</span></p>
+                        <p class="text-sm text-gray-900 dark:text-gray-100">Payment Method: <span id="modal-payment-method">--</span></p>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">Shipping Address</h4>
+                    <p class="text-sm text-gray-900 dark:text-gray-100" id="modal-shipping-address">--</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">Order Items</h4>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        Product
+                                    </th>
+                                    <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        Quantity
+                                    </th>
+                                    <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        Price
+                                    </th>
+                                    <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        Total
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="modal-order-items" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <!-- Order items will be inserted here by JavaScript -->
+                            </tbody>
+                            <tfoot class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <td colspan="3" class="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">
+                                        Subtotal:
+                                    </td>
+                                    <td class="px-4 py-3 text-right text-sm text-gray-900 dark:text-gray-100" id="modal-subtotal">
+                                        --
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">
+                                        Shipping:
+                                    </td>
+                                    <td class="px-4 py-3 text-right text-sm text-gray-900 dark:text-gray-100" id="modal-shipping">
+                                        --
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">
+                                        Tax:
+                                    </td>
+                                    <td class="px-4 py-3 text-right text-sm text-gray-900 dark:text-gray-100" id="modal-tax">
+                                        --
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="px-4 py-3 text-right text-sm font-medium text-gray-900 dark:text-white">
+                                        Total:
+                                    </td>
+                                    <td class="px-4 py-3 text-right text-sm font-bold text-gray-900 dark:text-white" id="modal-total">
+                                        --
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+                <button id="print-order" class="mr-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors">
+                    Print Order
+                </button>
+                <button id="update-status" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors">
+                    Update Status
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Update Modal -->
+    <div id="status-modal" class="fixed inset-0 bg-gray-500 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full mx-4 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Update Order Status</h3>
+            </div>
+            <div class="px-6 py-4">
+                <div class="mb-4">
+                    <label for="new-status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">New Status</label>
+                    <select id="new-status" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="status-notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Notes (Optional)</label>
+                    <textarea id="status-notes" rows="3" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"></textarea>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+                <button id="cancel-status-update" class="mr-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors">
+                    Cancel
+                </button>
+                <button id="confirm-status-update" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors">
+                    Update Status
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data - in a real application, this would come from an API
+        const orders = [
+            {
+                id: "ORD-2023-1001",
+                customer: {
+                    name: "John Smith",
+                    email: "john.smith@example.com",
+                    phone: "+1 (555) 123-4567"
+                },
+                date: "2023-05-15T10:30:00",
+                total: 129.99,
+                status: "delivered",
+                paymentMethod: "Credit Card",
+                shippingAddress: "123 Main St, Apt 4B, New York, NY 10001, USA",
+                items: [
+                    { name: "Wireless Headphones", quantity: 1, price: 89.99 },
+                    { name: "Phone Case", quantity: 2, price: 19.99 }
+                ],
+                shipping: 5.99,
+                tax: 10.40
+            },
+            {
+                id: "ORD-2023-1002",
+                customer: {
+                    name: "Emily Johnson",
+                    email: "emily.j@example.com",
+                    phone: "+1 (555) 987-6543"
+                },
+                date: "2023-05-14T14:45:00",
+                total: 249.95,
+                status: "shipped",
+                paymentMethod: "PayPal",
+                shippingAddress: "456 Oak Avenue, Seattle, WA 98101, USA",
+                items: [
+                    { name: "Smart Watch", quantity: 1, price: 199.99 },
+                    { name: "Watch Band", quantity: 1, price: 29.99 }
+                ],
+                shipping: 0,
+                tax: 19.97
+            },
+            {
+                id: "ORD-2023-1003",
+                customer: {
+                    name: "Michael Brown",
+                    email: "michael.b@example.com",
+                    phone: "+1 (555) 456-7890"
+                },
+                date: "2023-05-14T09:15:00",
+                total: 74.98,
+                status: "processing",
+                paymentMethod: "Credit Card",
+                shippingAddress: "789 Pine Street, San Francisco, CA 94101, USA",
+                items: [
+                    { name: "Bluetooth Speaker", quantity: 1, price: 59.99 },
+                    { name: "USB Cable", quantity: 1, price: 9.99 }
+                ],
+                shipping: 4.99,
+                tax: 6.00
+            },
+            {
+                id: "ORD-2023-1004",
+                customer: {
+                    name: "Sarah Wilson",
+                    email: "sarah.w@example.com",
+                    phone: "+1 (555) 789-0123"
+                },
+                date: "2023-05-13T16:20:00",
+                total: 349.99,
+                status: "pending",
+                paymentMethod: "Credit Card",
+                shippingAddress: "101 Maple Road, Chicago, IL 60601, USA",
+                items: [
+                    { name: "Tablet", quantity: 1, price: 329.99 }
+                ],
+                shipping: 0,
+                tax: 20.00
+            },
+            {
+                id: "ORD-2023-1005",
+                customer: {
+                    name: "David Lee",
+                    email: "david.l@example.com",
+                    phone: "+1 (555) 234-5678"
+                },
+                date: "2023-05-13T11:10:00",
+                total: 159.96,
+                status: "cancelled",
+                paymentMethod: "PayPal",
+                shippingAddress: "202 Cedar Lane, Austin, TX 78701, USA",
+                items: [
+                    { name: "Wireless Mouse", quantity: 1, price: 49.99 },
+                    { name: "Keyboard", quantity: 1, price: 89.99 }
+                ],
+                shipping: 7.99,
+                tax: 11.99
+            },
+            {
+                id: "ORD-2023-1006",
+                customer: {
+                    name: "Jennifer Martinez",
+                    email: "jennifer.m@example.com",
+                    phone: "+1 (555) 345-6789"
+                },
+                date: "2023-05-12T13:25:00",
+                total: 529.98,
+                status: "delivered",
+                paymentMethod: "Credit Card",
+                shippingAddress: "303 Birch Street, Miami, FL 33101, USA",
+                items: [
+                    { name: "Smartphone", quantity: 1, price: 499.99 },
+                    { name: "Screen Protector", quantity: 1, price: 14.99 }
+                ],
+                shipping: 0,
+                tax: 15.00
+            },
+            {
+                id: "ORD-2023-1007",
+                customer: {
+                    name: "Robert Taylor",
+                    email: "robert.t@example.com",
+                    phone: "+1 (555) 456-7890"
+                },
+                date: "2023-05-12T10:05:00",
+                total: 89.98,
+                status: "shipped",
+                paymentMethod: "PayPal",
+                shippingAddress: "404 Elm Court, Denver, CO 80201, USA",
+                items: [
+                    { name: "External Hard Drive", quantity: 1, price: 79.99 }
+                ],
+                shipping: 4.99,
+                tax: 5.00
+            },
+            {
+                id: "ORD-2023-1008",
+                customer: {
+                    name: "Lisa Anderson",
+                    email: "lisa.a@example.com",
+                    phone: "+1 (555) 567-8901"
+                },
+                date: "2023-05-11T15:40:00",
+                total: 149.97,
+                status: "processing",
+                paymentMethod: "Credit Card",
+                shippingAddress: "505 Spruce Avenue, Boston, MA 02101, USA",
+                items: [
+                    { name: "Wireless Earbuds", quantity: 1, price: 129.99 },
+                    { name: "Charging Case", quantity: 1, price: 19.98 }
+                ],
+                shipping: 0,
+                tax: 0
+            },
+            {
+                id: "ORD-2023-1009",
+                customer: {
+                    name: "James Wilson",
+                    email: "james.w@example.com",
+                    phone: "+1 (555) 678-9012"
+                },
+                date: "2023-05-11T09:30:00",
+                total: 299.99,
+                status: "pending",
+                paymentMethod: "PayPal",
+                shippingAddress: "606 Redwood Drive, Portland, OR 97201, USA",
+                items: [
+                    { name: "Digital Camera", quantity: 1, price: 279.99 }
+                ],
+                shipping: 9.99,
+                tax: 10.01
+            },
+            {
+                id: "ORD-2023-1010",
+                customer: {
+                    name: "Patricia Moore",
+                    email: "patricia.m@example.com",
+                    phone: "+1 (555) 789-0123"
+                },
+                date: "2023-05-10T14:15:00",
+                total: 199.98,
+                status: "delivered",
+                paymentMethod: "Credit Card",
+                shippingAddress: "707 Walnut Street, Philadelphia, PA 19101, USA",
+                items: [
+                    { name: "Fitness Tracker", quantity: 1, price: 149.99 },
+                    { name: "Extra Band", quantity: 1, price: 29.99 }
+                ],
+                shipping: 7.99,
+                tax: 12.01
+            },
+            {
+                id: "ORD-2023-1011",
+                customer: {
+                    name: "Thomas Jackson",
+                    email: "thomas.j@example.com",
+                    phone: "+1 (555) 890-1234"
+                },
+                date: "2023-05-10T11:20:00",
+                total: 449.99,
+                status: "shipped",
+                paymentMethod: "PayPal",
+                shippingAddress: "808 Chestnut Lane, Atlanta, GA 30301, USA",
+                items: [
+                    { name: "Gaming Console", quantity: 1, price: 399.99 },
+                    { name: "Controller", quantity: 1, price: 49.99 }
+                ],
+                shipping: 0,
+                tax: 0.01
+            },
+            {
+                id: "ORD-2023-1012",
+                customer: {
+                    name: "Nancy Harris",
+                    email: "nancy.h@example.com",
+                    phone: "+1 (555) 901-2345"
+                },
+                date: "2023-05-09T16:55:00",
+                total: 79.99,
+                status: "processing",
+                paymentMethod: "Credit Card",
+                shippingAddress: "909 Aspen Road, Las Vegas, NV 89101, USA",
+                items: [
+                    { name: "Portable Charger", quantity: 1, price: 59.99 },
+                    { name: "USB-C Cable", quantity: 2, price: 9.99 }
+                ],
+                shipping: 0,
+                tax: 0.02
+            }
+        ];
+
+        // DOM elements
+        const tableBody = document.getElementById('orders-table-body');
+        const emptyState = document.getElementById('empty-state');
+        const searchInput = document.getElementById('search-input');
+        const statusFilter = document.getElementById('status-filter');
+        const dateFilter = document.getElementById('date-filter');
+        const exportBtn = document.getElementById('export-btn');
+        const orderModal = document.getElementById('order-modal');
+        const closeModal = document.getElementById('close-modal');
+        const statusModal = document.getElementById('status-modal');
+        const updateStatusBtn = document.getElementById('update-status');
+        const cancelStatusUpdate = document.getElementById('cancel-status-update');
+        const confirmStatusUpdate = document.getElementById('confirm-status-update');
+        const printOrderBtn = document.getElementById('print-order');
+        const prevPageBtn = document.getElementById('prev-page');
+        const nextPageBtn = document.getElementById('next-page');
+        const paginationNumbers = document.getElementById('pagination-numbers');
+        const pageStart = document.getElementById('page-start');
+        const pageEnd = document.getElementById('page-end');
+        const totalItems = document.getElementById('total-items');
+        const themeToggle = document.getElementById('theme-toggle');
+
+        // State variables
+        let filteredOrders = [...orders];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let sortField = 'id';
+        let sortDirection = 'desc';
+        let currentOrderId = null;
+
+        // Initialize the page
+        function init() {
+            // Initialize theme from localStorage
+            initTheme();
+            renderOrders();
+            setupEventListeners();
+        }
+
+        // Initialize theme based on localStorage or system preference
+        function initTheme() {
+            // Check if theme is stored in localStorage
+            const storedTheme = localStorage.getItem('theme');
+            
+            if (storedTheme) {
+                // Apply stored theme
+                document.documentElement.classList.toggle('dark', storedTheme === 'dark');
+            } else {
+                // Check system preference
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.classList.toggle('dark', prefersDark);
+                localStorage.setItem('theme', prefersDark ? 'dark' : 'light');
+            }
+        }
+
+        // Toggle theme between light and dark
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        // Render orders table
+        function renderOrders() {
+            // Apply filters
+            applyFilters();
+            
+            // Apply sorting
+            applySorting();
+            
+            // Apply pagination
+            const paginatedOrders = getPaginatedOrders();
+            
+            // Update table
+            renderTable(paginatedOrders);
+            
+            // Update pagination
+            updatePagination();
+        }
+
+        // Apply filters to orders
+        function applyFilters() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const statusValue = statusFilter.value;
+            const dateValue = dateFilter.value;
+            
+            filteredOrders = orders.filter(order => {
+                // Search filter
+                const matchesSearch = 
+                    order.id.toLowerCase().includes(searchTerm) ||
+                    order.customer.name.toLowerCase().includes(searchTerm) ||
+                    order.customer.email.toLowerCase().includes(searchTerm);
+                
+                // Status filter
+                const matchesStatus = statusValue === 'all' || order.status === statusValue;
+                
+                // Date filter
+                let matchesDate = true;
+                if (dateValue !== 'all') {
+                    const orderDate = new Date(order.date);
+                    const today = new Date();
+                    
+                    if (dateValue === 'today') {
+                        matchesDate = orderDate.toDateString() === today.toDateString();
+                    } else if (dateValue === 'week') {
+                        const weekAgo = new Date();
+                        weekAgo.setDate(today.getDate() - 7);
+                        matchesDate = orderDate >= weekAgo;
+                    } else if (dateValue === 'month') {
+                        const monthAgo = new Date();
+                        monthAgo.setMonth(today.getMonth() - 1);
+                        matchesDate = orderDate >= monthAgo;
+                    } else if (dateValue === 'quarter') {
+                        const quarterAgo = new Date();
+                        quarterAgo.setMonth(today.getMonth() - 3);
+                        matchesDate = orderDate >= quarterAgo;
+                    }
+                }
+                
+                return matchesSearch && matchesStatus && matchesDate;
+            });
+            
+            // Reset to first page when filters change
+            currentPage = 1;
+            
+            // Show/hide empty state
+            if (filteredOrders.length === 0) {
+                tableBody.innerHTML = '';
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+            }
+            
+            // Update total count
+            totalItems.textContent = filteredOrders.length;
+        }
+
+        // Apply sorting to filtered orders
+        function applySorting() {
+            filteredOrders.sort((a, b) => {
+                let valueA, valueB;
+                
+                if (sortField === 'id') {
+                    valueA = a.id;
+                    valueB = b.id;
+                } else if (sortField === 'customer') {
+                    valueA = a.customer.name;
+                    valueB = b.customer.name;
+                } else if (sortField === 'date') {
+                    valueA = new Date(a.date);
+                    valueB = new Date(b.date);
+                } else if (sortField === 'total') {
+                    valueA = a.total;
+                    valueB = b.total;
+                }
+                
+                if (sortDirection === 'asc') {
+                    return valueA > valueB ? 1 : -1;
+                } else {
+                    return valueA < valueB ? 1 : -1;
+                }
+            });
+        }
+
+        // Get paginated orders
+        function getPaginatedOrders() {
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            return filteredOrders.slice(startIndex, endIndex);
+        }
+
+        // Render the table with the provided orders
+        function renderTable(ordersToRender) {
+            tableBody.innerHTML = '';
+            
+            ordersToRender.forEach(order => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700';
+                
+                // Format date
+                const orderDate = new Date(order.date);
+                const formattedDate = orderDate.toLocaleDateString() + ' ' + 
+                                     orderDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                // Status badge class
+                let statusClass = '';
+                switch(order.status) {
+                    case 'pending':
+                        statusClass = 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+                        break;
+                    case 'processing':
+                        statusClass = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+                        break;
+                    case 'shipped':
+                        statusClass = 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
+                        break;
+                    case 'delivered':
+                        statusClass = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+                        break;
+                    case 'cancelled':
+                        statusClass = 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+                        break;
+                }
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900 dark:text-gray-100">${order.id}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900 dark:text-gray-100">${order.customer.name}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">${order.customer.email}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900 dark:text-gray-100">${formattedDate}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900 dark:text-gray-100">$${order.total.toFixed(2)}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                            ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 view-order" data-id="${order.id}">
+                            View Details
+                        </button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Add event listeners to view buttons
+            document.querySelectorAll('.view-order').forEach(button => {
+                button.addEventListener('click', () => {
+                    const orderId = button.getAttribute('data-id');
+                    openOrderDetails(orderId);
+                });
+            });
+        }
+
+        // Update pagination controls
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+            
+            // Update page info
+            const startItem = filteredOrders.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
+            const endItem = Math.min(currentPage * itemsPerPage, filteredOrders.length);
+            
+            pageStart.textContent = startItem;
+            pageEnd.textContent = endItem;
+            
+            // Disable/enable prev/next buttons
+            prevPageBtn.disabled = currentPage === 1;
+            nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+            
+            prevPageBtn.classList.toggle('opacity-50', currentPage === 1);
+            nextPageBtn.classList.toggle('opacity-50', currentPage === totalPages || totalPages === 0);
+            
+            // Generate page numbers
+            paginationNumbers.innerHTML = '';
+            
+            // Determine which page numbers to show
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+            
+            if (endPage - startPage < 4 && totalPages > 4) {
+                startPage = Math.max(1, endPage - 4);
+            }
+            
+            // Add first page if not included
+            if (startPage > 1) {
+                addPageButton(1);
+                if (startPage > 2) {
+                    addEllipsis();
+                }
+            }
+            
+            // Add page numbers
+            for (let i = startPage; i <= endPage; i++) {
+                addPageButton(i);
+            }
+            
+            // Add last page if not included
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    addEllipsis();
+                }
+                addPageButton(totalPages);
+            }
+        }
+
+        // Add a page button to pagination
+        function addPageButton(pageNum) {
+            const button = document.createElement('button');
+            button.className = `relative inline-flex items-center px-4 py-2 border ${
+                pageNum === currentPage 
+                    ? 'bg-blue-50 dark:bg-blue-900 border-blue-500 text-blue-600 dark:text-blue-300 z-10' 
+                    : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+            } text-sm font-medium`;
+            button.textContent = pageNum;
+            
+            button.addEventListener('click', () => {
+                currentPage = pageNum;
+                renderOrders();
+            });
+            
+            paginationNumbers.appendChild(button);
+        }
+
+        // Add ellipsis to pagination
+        function addEllipsis() {
+            const span = document.createElement('span');
+            span.className = 'relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-400';
+            span.textContent = '...';
+            paginationNumbers.appendChild(span);
+        }
+
+        // Open order details modal
+        function openOrderDetails(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (!order) return;
+            
+            currentOrderId = orderId;
+            
+            // Fill modal with order details
+            document.getElementById('modal-order-id').textContent = order.id;
+            document.getElementById('modal-customer-name').textContent = order.customer.name;
+            document.getElementById('modal-customer-email').textContent = order.customer.email;
+            document.getElementById('modal-customer-phone').textContent = order.customer.phone;
+            
+            const orderDate = new Date(order.date);
+            document.getElementById('modal-order-date').textContent = orderDate.toLocaleDateString() + ' ' + 
+                                                                     orderDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            document.getElementById('modal-order-status').textContent = order.status.charAt(0).toUpperCase() + order.status.slice(1);
+            document.getElementById('modal-payment-method').textContent = order.paymentMethod;
+            document.getElementById('modal-shipping-address').textContent = order.shippingAddress;
+            
+            // Fill order items
+            const itemsContainer = document.getElementById('modal-order-items');
+            itemsContainer.innerHTML = '';
+            
+            let subtotal = 0;
+            
+            order.items.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                        ${item.name}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 text-center">
+                        ${item.quantity}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 text-right">
+                        $${item.price.toFixed(2)}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 text-right">
+                        $${itemTotal.toFixed(2)}
+                    </td>
+                `;
+                
+                itemsContainer.appendChild(row);
+            });
+            
+            // Fill totals
+            document.getElementById('modal-subtotal').textContent = '$' + subtotal.toFixed(2);
+            document.getElementById('modal-shipping').textContent = '$' + order.shipping.toFixed(2);
+            document.getElementById('modal-tax').textContent = '$' + order.tax.toFixed(2);
+            document.getElementById('modal-total').textContent = '$' + order.total.toFixed(2);
+            
+            // Set initial status in status modal
+            document.getElementById('new-status').value = order.status;
+            
+            // Show modal
+            orderModal.classList.remove('hidden');
+        }
+
+        // Close order details modal
+        function closeOrderDetails() {
+            orderModal.classList.add('hidden');
+            currentOrderId = null;
+        }
+
+        // Open status update modal
+        function openStatusModal() {
+            statusModal.classList.remove('hidden');
+        }
+
+        // Close status update modal
+        function closeStatusModal() {
+            statusModal.classList.add('hidden');
+        }
+
+        // Update order status
+        function updateOrderStatus() {
+            const newStatus = document.getElementById('new-status').value;
+            const notes = document.getElementById('status-notes').value;
+            
+            // Find the order and update its status
+            const orderIndex = orders.findIndex(o => o.id === currentOrderId);
+            if (orderIndex !== -1) {
+                orders[orderIndex].status = newStatus;
+                
+                // In a real app, you would send this to the server
+                console.log(`Updated order ${currentOrderId} status to ${newStatus}`);
+                if (notes) {
+                    console.log(`Notes: ${notes}`);
+                }
+                
+                // Update the UI
+                document.getElementById('modal-order-status').textContent = 
+                    newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+                
+                // Re-render the table
+                renderOrders();
+            }
+            
+            // Close the status modal
+            closeStatusModal();
+        }
+
+        // Export orders as CSV
+        function exportOrdersCSV() {
+            // Create CSV content
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            // Add headers
+            csvContent += "Order ID,Customer,Email,Date,Total,Status\n";
+            
+            // Add data rows
+            filteredOrders.forEach(order => {
+                const orderDate = new Date(order.date);
+                const formattedDate = orderDate.toLocaleDateString() + ' ' + 
+                                     orderDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                const row = [
+                    order.id,
+                    order.customer.name,
+                    order.customer.email,
+                    formattedDate,
+                    '$' + order.total.toFixed(2),
+                    order.status
+                ];
+                
+                csvContent += row.join(',') + '\n';
+            });
+            
+            // Create download link
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "orders_export.csv");
+            document.body.appendChild(link);
+            
+            // Trigger download
+            link.click();
+            
+            // Clean up
+            document.body.removeChild(link);
+        }
+
+        // Print order
+        function printOrder() {
+            const order = orders.find(o => o.id === currentOrderId);
+            if (!order) return;
+            
+            // Create a new window for printing
+            const printWindow = window.open('', '_blank');
+            
+            // Get current theme
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            
+            // Generate print content
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Order ${order.id}</title>
+                    <style>
+                        body { 
+                            font-family: Arial, sans-serif; 
+                            margin: 20px; 
+                            background-color: ${isDarkMode ? '#1f2937' : '#ffffff'};
+                            color: ${isDarkMode ? '#f3f4f6' : '#111827'};
+                        }
+                        h1 { font-size: 24px; margin-bottom: 20px; }
+                        .section { margin-bottom: 20px; }
+                        .section-title { 
+                            font-size: 16px; 
+                            font-weight: bold; 
+                            margin-bottom: 10px; 
+                            color: ${isDarkMode ? '#9ca3af' : '#4b5563'};
+                        }
+                        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+                        table { 
+                            width: 100%; 
+                            border-collapse: collapse; 
+                            margin-top: 10px; 
+                        }
+                        th, td { 
+                            border: 1px solid ${isDarkMode ? '#4b5563' : '#e5e7eb'}; 
+                            padding: 8px; 
+                            text-align: left; 
+                        }
+                        th { 
+                            background-color: ${isDarkMode ? '#374151' : '#f9fafb'}; 
+                            color: ${isDarkMode ? '#d1d5db' : '#374151'};
+                        }
+                        .text-right { text-align: right; }
+                        .total-row { font-weight: bold; }
+                        @media print {
+                            body {
+                                background-color: white;
+                                color: black;
+                            }
+                            .section-title {
+                                color: #4b5563;
+                            }
+                            th, td {
+                                border: 1px solid #e5e7eb;
+                            }
+                            th {
+                                background-color: #f9fafb;
+                                color: #374151;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>Order Details - ${order.id}</h1>
+                    
+                    <div class="grid">
+                        <div class="section">
+                            <div class="section-title">Customer Information</div>
+                            <p>${order.customer.name}<br>
+                            ${order.customer.email}<br>
+                            ${order.customer.phone}</p>
+                        </div>
+                        
+                        <div class="section">
+                            <div class="section-title">Order Information</div>
+                            <p>Date: ${new Date(order.date).toLocaleString()}<br>
+                            Status: ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}<br>
+                            Payment Method: ${order.paymentMethod}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Shipping Address</div>
+                        <p>${order.shippingAddress}</p>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Order Items</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${order.items.map(item => `
+                                    <tr>
+                                        <td>${item.name}</td>
+                                        <td>${item.quantity}</td>
+                                        <td class="text-right">$${item.price.toFixed(2)}</td>
+                                        <td class="text-right">$${(item.price * item.quantity).toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-right">Subtotal:</td>
+                                    <td class="text-right">$${order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="text-right">Shipping:</td>
+                                    <td class="text-right">$${order.shipping.toFixed(2)}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="text-right">Tax:</td>
+                                    <td class="text-right">$${order.tax.toFixed(2)}</td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td colspan="3" class="text-right">Total:</td>
+                                    <td class="text-right">$${order.total.toFixed(2)}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </body>
+                </html>
+            `);
+            
+            // Print and close
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Theme toggle
+            themeToggle.addEventListener('click', toggleTheme);
+            
+            // Search and filters
+            searchInput.addEventListener('input', renderOrders);
+            statusFilter.addEventListener('change', renderOrders);
+            dateFilter.addEventListener('change', renderOrders);
+            
+            // Sorting
+            document.querySelectorAll('th[data-sort]').forEach(th => {
+                th.addEventListener('click', () => {
+                    const field = th.getAttribute('data-sort');
+                    
+                    // Toggle direction if same field, otherwise default to asc
+                    if (field === sortField) {
+                        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        sortField = field;
+                        sortDirection = 'asc';
+                    }
+                    
+                    // Update sort indicators
+                    document.querySelectorAll('th[data-sort] span').forEach(span => {
+                        span.textContent = '';
+                    });
+                    
+                    const indicator = th.querySelector('span');
+                    indicator.textContent = sortDirection === 'asc' ? '↑' : '↓';
+                    
+                    renderOrders();
+                });
+            });
+            
+            // Export button
+            exportBtn.addEventListener('click', exportOrdersCSV);
+            
+            // Modal controls
+            closeModal.addEventListener('click', closeOrderDetails);
+            updateStatusBtn.addEventListener('click', openStatusModal);
+            cancelStatusUpdate.addEventListener('click', closeStatusModal);
+            confirmStatusUpdate.addEventListener('click', updateOrderStatus);
+            printOrderBtn.addEventListener('click', printOrder);
+            
+            // Pagination
+            prevPageBtn.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderOrders();
+                }
+            });
+            
+            nextPageBtn.addEventListener('click', () => {
+                const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderOrders();
+                }
+            });
+            
+            // Close modals when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target === orderModal) {
+                    closeOrderDetails();
+                }
+                if (e.target === statusModal) {
+                    closeStatusModal();
+                }
+            });
+        }
+
+        // Initialize the page
+        init();
+    </script>
+</body>
+</html>

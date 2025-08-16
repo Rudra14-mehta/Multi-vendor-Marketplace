@@ -1,0 +1,1048 @@
+{% extends "layout.html" %}
+{% load custom_tags %}
+
+
+{% block title %}Checkout | MV-M{% endblock %}
+
+
+{% block content %}
+
+<div id="top" class="container mx-auto px-4 py-8">
+    <div class="flex flex-col md:flex-row gap-8">
+        <div class="w-full md:w-2/3">
+            <h1 class="text-2xl font-bold mb-6">Checkout</h1>
+
+            <div class="flex justify-between mb-8">
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">1</div>
+                    <span class="mt-2 text-sm">Shipping</span>
+                </div>
+                <div class="flex-1 h-0.5 bg-gray-700 self-center mx-2"></div>
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center text-white font-bold">2</div>
+                    <span class="mt-2 text-sm">Payment</span>
+                </div>
+                <div class="flex-1 h-0.5 bg-gray-700 self-center mx-2"></div>
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center text-white font-bold">3</div>
+                    <span class="mt-2 text-sm">Review</span>
+                </div>
+            </div>
+
+            <form id="checkoutForm" method="POST" action="checkout/orderConfirmation">
+                {%csrf_token%}
+                <div id="shippingStep" class="mb-12 space-y-12 bg-gray-900 p-8 rounded-xl">
+                    <div style="background-color: rgb(28 34 47);" class="p-6 bg-gray-800 rounded-lg border-l-4 border-indigo-600 shadow">
+                        <h2 class="text-xl font-bold text-indigo-400 flex items-center mb-4">
+                            <i class="fas fa-truck mr-2"></i> Shipping Information
+                        </h2>
+
+                        <h3 class="text-lg font-semibold text-gray-300 mb-4">Saved Addresses</h3>
+
+                        <div class="space-y-3 mb-6">
+                            {% if user.address %}
+                                {% for address in user.address %}
+                                    <div class="address-item border-l-4 border-blue-500 border-blue-500 rounded-lg overflow-hidden bg-gray-900 hover:shadow-md hover:border-blue-400 transition duration-200"> {# Added left border, adjusted other borders, darker background, hover shadow #}
+                                        <label class="flex items-start p-4 cursor-pointer w-full">
+                                            <input type="radio" name="savedAddress" value="{{address}}" class="mt-1 mr-3 form-radio text-blue-600 bg-gray-800 border-gray-700 focus:ring-blue-500"> {# Radio button color matches accent #}
+                                            <div class="flex-1">
+                                                <div class="font-semibold text-blue-400 address-type">Home</div> {# Address type color matches accent #}
+                                                <div class="text-gray-300 address-details"> {# Slightly lighter detail text #}
+                                                    <div class="w-1/2 mt-3 grid grid-cols-2 gap-x-4 font-semibold text-white address-name">
+                                                        <div id="name" data-value="{{address.name}}">{{ address.name }}</div>
+                                                        <div id="contact" data-value="{{address.contact}}" class="text-left text-gray-400 font-normal">{{ address.contact }}</div>
+                                                    </div>
+                                                    <hr class="border-2 border-gray-700 my-2 w-1/5">
+                                                    <div id="address" data-value="{{address.address}}">{{ address.address }}</div>
+                                                    <div id="city" data-value="{{ address.city }}, {{ address.state }} – {{ address.pincode }}">{{ address.city }}, {{ address.state }} – {{ address.pincode }}</div>
+                                                    <div>India</div>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="edit-btn text-indigo-300 hover:text-indigo-200 hover:bg-indigo-900 hover:bg-opacity-30 px-4 py-2 rounded-md transition duration-200 font-medium"
+                                                data-id="{{ address.id }}"
+                                                data-name="{{ address.name }}"
+                                                data-contact="{{ address.contact }}" {# Corrected data attribute name to match form input name #}
+                                                data-address="{{ address.address }}"
+                                                data-locality="{{ address.locality }}"
+                                                data-pincode="{{ address.pincode }}"
+                                                data-city="{{ address.city }}"
+                                                data-state="{{ address.state }}" {# Added data attribute for state #}
+                                                data-landmark="{{ address.landmark }}"
+                                                data-alternatePhone="{{ address.alternatephone }}"
+                                                data-type="{{ address.addressType }}">Edit</button> {# Edit button color matches accent #}
+                                        </label>
+                                    </div>
+                                    {% comment %} {{ address }} {% endcomment %}
+                                {% endfor %}
+                            {% endif %}
+
+                            <button type="button" id="addNewAddressBtn" class="w-full py-3 border border-dashed border-gray-600 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:border-gray-500 transition-colors"> {# Removed onclick="" #}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                Add New Address
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="p-6 bg-gray-800 rounded-lg border-l-4 border-blue-500 shadow">
+                        <h3 class="text-lg font-semibold text-gray-300 mb-4">Shipping Method</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center p-4 border border-gray-700 rounded-lg">
+                                <input type="radio" id="standardShipping" name="shippingMethod" value="standard" class="mr-3" checked>
+                                <label for="standardShipping" class="flex-1 text-gray-300">
+                                    <span class="font-medium">Standard Shipping</span>
+                                    <span class="block text-sm text-gray-400">5-7 business days</span>
+                                </label>
+                                <span class="font-semibold text-gray-300">₹40</span>
+                            </div>
+
+                            <div class="flex items-center p-4 border border-gray-700 rounded-lg">
+                                <input type="radio" id="expressShipping" name="shippingMethod" value="express" class="mr-3">
+                                <label for="expressShipping" class="flex-1 text-gray-300">
+                                    <span class="font-medium">Express Shipping</span>
+                                    <span class="block text-sm text-gray-400">2-3 business days</span>
+                                </label>
+                                <span class="font-semibold text-gray-300">₹100</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end pt-6 border-t border-gray-700">
+                        <a href="#top">
+                            <button type="button" id="shippingContinueBtn" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition">
+                                Continue to Payment
+                            </button>
+                        </a>
+                    </div>
+
+
+                </div>
+
+
+                <div id="paymentStep" class="hidden mb-12 space-y-12 bg-gray-900 p-8 rounded-xl">
+
+                    <div class="p-6 bg-gray-800 rounded-lg border-l-4 border-indigo-600 shadow">
+                        <h2 class="text-xl font-bold text-indigo-400 flex items-center mb-4">
+                            <i class="fas fa-credit-card mr-2"></i> Payment Method
+                        </h2>
+
+                        <div class="mb-6 space-x-6 flex">
+                            <label class="flex items-center space-x-2 text-gray-300 cursor-pointer">
+                                <input type="radio" id="payondelivary" name="paymentMethod" value="payondelivary" class="form-radio text-indigo-500" checked>
+                                <span>Pay on delivary</span>
+                            </label>
+                            <label class="flex items-center space-x-2 text-gray-300 cursor-pointer">
+                                <input type="radio" id="creditCard" name="paymentMethod" value="creditCard" class="form-radio text-indigo-500" disabled>
+                                <span>Credit Card</span>
+                            </label>
+                            <label class="flex items-center space-x-2 text-gray-300 cursor-pointer">
+                                <input type="radio" id="upi" name="paymentMethod" value="upi" class="form-radio text-indigo-500" disabled>
+                                <span>UPI</span> {# Changed from PayPal to UPI #}
+                            </label>
+                        </div>
+
+                        <div id="creditCardForm" class=" hidden space-y-4">
+                            <div class=" mt-6 flex items-center justify-center min-h-[120px]">
+                                <p class="text-gray-400 mb-4 font-bold text-center">Card Payment is not functional yet</p>
+                            </div>
+
+                        </div>
+
+                        <div id="upiForm" class="hidden mt-6 flex items-center justify-center min-h-[120px]">
+                            <p class="text-gray-400 mb-4 font-bold text-center">Online payment is not functional yet </p>
+                        </div>
+                    </div>
+
+                    <div class="p-6 bg-gray-800 rounded-lg border-l-4 border-blue-500 shadow">
+                        <h2 class="text-xl font-bold text-blue-400 flex items-center mb-4">
+                            <i class="fas fa-home mr-2"></i> Billing Address
+                        </h2>
+
+                        <div class="flex items-center mb-4">
+                            <input type="checkbox" id="sameAsShipping" class="mr-2 text-blue-500" checked>
+                            <label for="sameAsShipping" class="text-gray-300">Same as shipping address</label>
+                        </div>
+
+                        <div id="billingAddressForm" class="hidden space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="billingFirstName" class="text-sm text-gray-300">First Name</label>
+                                    <input type="text" id="billingFirstName" class="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label for="billingLastName" class="text-sm text-gray-300">Last Name</label>
+                                    <input type="text" id="billingLastName" class="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label for="billingAddress" class="text-sm text-gray-300">Street Address</label>
+                                    <input type="text" id="billingAddress" class="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label for="billingCity" class="text-sm text-gray-300">City</label>
+                                    <input type="text" id="billingCity" class="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label for="billingState" class="text-sm text-gray-300">State/Province</label>
+                                    <input type="text" id="billingState" class="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label for="billingZip" class="text-sm text-gray-300">ZIP Code</label>
+                                    <input type="text" id="billingZip" class="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label for="billingCountry" class="text-sm text-gray-300">Country</label>
+                                    <select id="billingCountry" class="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500">
+                                        <option disabled selected>Select Country</option>
+                                        <option value="US">United States</option>
+                                        <option value="CA">Canada</option>
+                                        <option value="UK">United Kingdom</option>
+                                        <option value="AU">Australia</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between pt-6 border-t border-gray-700">
+                        <button type="button" id="backToShippingBtn" class="px-6 py-3 border border-gray-600 text-gray-300 rounded-lg hover:border-gray-500 transition">
+                            ← Back to Shipping
+                        </button>
+                        <button type="button" id="paymentContinueBtn" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition">
+                            Review Order →
+                        </button>
+                    </div>
+                </div>
+
+                <div id="reviewStep" class="hidden mb-8 w-3/4 mx-auto"> {# Added mx-auto here #}
+                    <h2 class="text-xl font-semibold mb-4 pb-2 border-b border-gray-700">Review Your Order</h2>
+
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3 text-gray-200">Shipping Information</h3> {# Slightly adjusted mb and text color #}
+                            <div class="address-item border-l-4 border-blue-600 rounded-lg overflow-hidden bg-gray-800 shadow-md"> {# Slightly darker border accent and added subtle shadow #}
+                                <div class="flex flex-col p-4 text-gray-300"> {# Base text color for details #}
+                                    <div id="reviewShippingName" class="font-semibold text-blue-400 mb-2 text-lg"> {# More prominent name #}
+                                        John Doe
+                                    </div>
+
+                                    <div id="reviewShippingAddress" class="mb-1"> {# Consistent bottom margin #}
+                                        123 Main St
+                                    </div>
+
+                                    <div id="reviewShippingCityState" class="mb-1"> {# Consistent bottom margin #}
+                                        Anytown, ST 12345
+                                    </div>
+
+                                    <div id="reviewShippingCountry" class="mb-3"> {# Increased bottom margin before shipping method #}
+                                        United States
+                                    </div>
+
+                                    <div id="reviewShippingMethod" class="mt-1 text-blue-400 font-medium pt-2 border-t border-gray-700"> {# Added top border and padding for separation, adjusted top margin #}
+                                        Standard Shipping (5–7 business days)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3 text-gray-200">Payment Information</h3> {# Slightly adjusted mb and text color #}
+                            <div class="bg-gray-800 p-4 rounded-lg shadow-md"> {# Added subtle shadow #}
+                                <div class="flex items-center mb-3 text-gray-300"> {# Increased bottom margin #}
+                                    <div id="reviewPaymentMethod" class="inline-flex items-center gap-2 text-white font-medium">Credit Card</div> {# More prominent payment method text #}
+                                    {# Uncomment and ensure you have Font Awesome or Material Icons for actual icons #}
+                                    {# <span class="material-symbols-outlined text-xl ml-2">payments</span> #}
+                                    {# <i class="fab fa-cc-visa ml-2 text-xl text-blue-400"></i> #}
+                                </div>
+                                <div id="reviewCardNumber" class="text-gray-400 text-sm">**** **** **** 1234</div> {# Slightly smaller and dimmer card number #}
+                            </div>
+                        </div>
+                        
+                        {% if products %}
+                            <div class="border-t border-gray-700 pt-4">
+                                <h3 class="text-lg font-semibold mb-4">Order Items</h3>
+                                <div class="space-y-4" id="reviewOrderItems">
+                                    {% for id, quantity in products.items %}
+                                        {% with product=id|get_product_from_id %}
+                                            <div class="flex items-center">
+                                                <div class="h-16 w-16 bg-gray-800 rounded flex-shrink-0 mr-4">
+                                                    {% if product.image %}
+                                                        <img src="{{product.image.url}}" alt="{{product.name}}" class="h-full w-full object-cover rounded">
+                                                    {% else %}
+                                                        <img src="{{product.image}}" alt="{{product.name}}" class="h-full w-full object-cover rounded">
+                                                    {% endif %}
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h4 class="font-medium">{{product.name}}</h4>
+                                                    <div class="text-sm">Qty: {{ quantity }}</div>
+                                                </div>
+                                                <div class="font-semibold">₹{{ product.price|floatformat:2 }}</div>
+                                            </div>
+                                        {% endwith %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="mt-8 flex justify-between">
+                        <button type="button" id="backToPaymentBtn" class="border border-gray-600 hover:border-gray-500 text-gray-300 font-semibold py-3 px-6 rounded-lg transition">
+                            Back to Payment
+                        </button>
+                        <!-- <form action="checkout/orderConfirmation" method="post" onsubmit="sendShipment()">
+                            {%csrf_token%}
+                            <a href="checkout/orderConfirmation">
+                            </a>
+                        </form> -->
+                        <input type="text" id="deliveryAddress" class="hidden">
+                        <input type="text" id="totalPrice" name="price" class="hidden">
+                        <button type="submit" id="placeOrderBtn" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition">
+                            Place Order
+                        </button>
+                    </div>
+                </div>
+            </form>
+            
+            {% comment %} --------------------------------------------------- {% endcomment %}
+        </div>
+
+        <div id="AddressModal" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex justify-center items-center z-50 hidden">
+            <div class="bg-gray-800 p-6 rounded-2xl shadow-lg max-w-3xl w-full">
+                <form id="AddressForm" method="POST" action="#" class="space-y-6">
+                    {% csrf_token %} {# Added CSRF token for POST form #}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="Name" class="block text-lg font-medium text-gray-300">Full Name</label>
+                            <input type="text" id="Name" name="Name" class="mt-2 block w-full rounded-md bg-gray-700 border border-gray-600 text-white py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400 transition duration-150 ease-in-out" placeholder="Enter your full name" required>
+                        </div>
+                        <div>
+                            <label for="Mobile" class="block text-lg font-medium text-gray-300">Mobile Number</label>
+                            <input type="tel" id="Mobile" name="Mobile" class="mt-2 block w-full rounded-md bg-gray-700 border border-gray-600 text-white py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400 transition duration-150 ease-in-out" placeholder="Enter your 10-digit contact number" maxlength="10" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="Address" class="block text-lg font-medium text-gray-300">Address (Area and Street)</label>
+                        <textarea id="Address" name="Address" class="mt-2 block w-full rounded-md bg-gray-700 border border-gray-600 text-white py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400 transition duration-150 ease-in-out" placeholder="Enter area and street" required rows="4"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="Locality" class="block text-lg font-medium text-gray-300">Locality</label>
+                            <input type="text" id="Locality" name="Locality" class="mt-2 block w-full rounded-md bg-gray-700 border border-gray-600 text-white py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400 transition duration-150 ease-in-out" placeholder="Enter locality" required>
+                        </div>
+                        <div>
+                            <label for="Pincode" class="block text-lg font-medium text-gray-300">Pincode</label>
+                            <input type="text" id="Pincode" name="Pincode" class="mt-2 block w-full rounded-md bg-gray-700 border border-gray-600 text-white py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400 transition duration-150 ease-in-out" placeholder="Enter pincode" maxlength="6" required>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="City" class="block text-lg font-medium text-gray-300">City/District/Town</label>
+                            <input type="text" id="City" name="City" class="mt-2 block w-full rounded-md bg-gray-700 border border-gray-600 text-white py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400 transition duration-150 ease-in-out" placeholder="Enter city/district/town" required>
+                        </div>
+
+                        <div>
+                            <label for="State" class="block text-lg font-medium text-gray-300">State</label>
+                            <input id="State" name="State" type="text" required
+                                class="mt-2 block w-full rounded-md bg-gray-700 border border-gray-600 text-white py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400 transition duration-150 ease-in-out"
+                                placeholder="Enter State">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="Landmark" class="block text-lg font-medium text-gray-300">Landmark (Optional)</label>
+                            <input type="text" id="Landmark" name="Landmark" class="mt-2 block w-full rounded-md bg-gray-700 border border-gray-600 text-white py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400 transition duration-150 ease-in-out" placeholder="Enter landmark">
+                        </div>
+
+                        <div>
+                            <label for="AlternatePhone" class="block text-lg font-medium text-gray-300">Alternate Phone (Optional)</label>
+                            <input type="tel" id="AlternatePhone" name="AlternatePhone" class="mt-2 block w-full rounded-md bg-gray-700 border border-gray-600 text-white py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400 transition duration-150 ease-in-out" placeholder="Enter alternate phone number" maxlength="10">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center mt-6 space-x-6">
+                        <div class="flex mb-2 items-center">
+                            <input type="radio" id="home" name="AddressType" value="home" class="text-indigo-600" checked>
+                            <label for="home" class="text-lg text-gray-300 ml-3">Home</label>
+
+                            <input type="radio" id="work" name="AddressType" value="work" class="text-indigo-600 ml-6">
+                            <label for="work" class="text-lg text-gray-300 ml-3">Work</label>
+
+                            <input type="radio" id="other" name="AddressType" value="other" class="text-indigo-600 ml-6">
+                            <label for="other" class="text-lg text-gray-300 ml-3">Other</label>
+                        </div>
+
+                        <div id="otherInput" class="hidden ml-8">
+                            <input type="text" id="otherAddress" name="otherAddress" class="block w-full rounded-md bg-gray-700 border border-gray-600 text-white py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400 transition duration-150 ease-in-out" placeholder="Address type">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center mt-4">
+                        {% comment %} <button type="submit" name="saveNewAddress" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-md text-lg font-semibold transition duration-200 transform hover:scale-105 ease-in-out shadow-md"> {% endcomment %}
+                        <button type="submit" form="AddressForm" name="saveNewAddress" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-md text-lg font-semibold transition duration-200 transform hover:scale-105 ease-in-out shadow-md">
+                            Save Address
+                        </button>
+                    </div>
+                </form>
+            </div>
+            {# Moved close button inside modal content for better positioning #}
+            <div class="absolute top-2 right-2 z-10"> {# Added z-10 to ensure it's above modal content #}
+                <button id="closeNewModalBtnInside" class="text-white text-3xl">&times;</button>
+            </div>
+        </div>
+
+        <div class="w-full md:w-1/3">
+            <div class="bg-gray-800 rounded-lg p-6 sticky top-24">
+                <h2 class="text-xl font-bold mb-4">Order Summary</h2>
+
+                <div class="space-y-4 mb-6">
+                    <div class="flex justify-between">
+                        <span>Subtotal </span>
+                        <span id="subtotal" data-price="{{cart.price}}"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Shipping</span>
+                        <span id="shippingCost" data-price="40.00"></span>
+                    </div>
+                    {% comment %} <div class="flex justify-between">
+                        <span>Tax</span>
+                        <span id="tax" data-price="38.28"></span>
+                    </div> {% endcomment %}
+                </div>
+
+                <div class="pt-4 border-t border-gray-700">
+                    <div class="flex justify-between items-center mb-6">
+                        <span class="font-bold">Total</span>
+                        <span class="text-xl font-bold" id="orderTotal">₹{{ cart.price }}</span>
+                    </div>
+                    {% comment %} PROMO CODE {% endcomment %}
+                    {% comment %} <div class="mb-4">
+                        <label for="promoCode" class="block mb-2 text-sm font-medium">Promo Code</label>
+                        <div class="flex">
+                            <input type="text" id="promoCode" placeholder="Enter code" class="flex-1 p-3 bg-gray-900 border border-gray-700 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 rounded-r-lg transition">Apply</button>
+                        </div>
+                    </div> {% endcomment %}
+
+                    <div class="border-t border-gray-700 pt-4">
+                        <h3 class="font-semibold mb-2">Payment Methods</h3>
+                        <div class="flex space-x-2 mb-2">
+                            <i class="fab fa-cc-visa text-2xl"></i>
+                            <i class="fab fa-cc-mastercard text-2xl"></i>
+                            <i class="fab fa-cc-amex text-2xl"></i>
+                            <i class="fab fa-cc-discover text-2xl"></i>
+                            {% comment %} <i class="fab fa-cc-paypal text-2xl"></i> {% endcomment %}
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-sm text-gray-400">
+                        <p>Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our privacy policy.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- <div id="orderConfirmationModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+    <div class="bg-gray-800 p-8 rounded-lg max-w-md w-full">
+        <div class="text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-green-500 rounded-full mb-4">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold mb-2">Order Confirmed!</h2>
+            <p class="mb-4">Your order has been placed successfully.</p>
+            <p class="mb-6">Order #: <span class="font-semibold" id="orderNumber">MVM-{{user.is}}-2025051301</span></p>
+            <p class="text-gray-400 mb-6">A confirmation email has been sent to your inbox.</p>
+            <div class="flex justify-center space-x-4">
+                <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition">Continue Shopping</a>
+                <a href="/orders" class="border border-gray-600 hover:border-gray-500 text-gray-300 font-semibold py-2 px-6 rounded-lg transition">View Orders</a>
+            </div>
+        </div>
+    </div>
+</div> -->
+
+    <script>
+        const buttons = document.getElementsByName('savedAddress');
+        buttons[0].defaultChecked = true;
+
+        
+        // Checkout process navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            const shippingStep = document.getElementById('shippingStep');
+            const paymentStep = document.getElementById('paymentStep');
+            const reviewStep = document.getElementById('reviewStep');
+
+            const shippingContinueBtn = document.getElementById('shippingContinueBtn');
+            const backToShippingBtn = document.getElementById('backToShippingBtn');
+            const paymentContinueBtn = document.getElementById('paymentContinueBtn');
+            const backToPaymentBtn = document.getElementById('backToPaymentBtn');
+            const placeOrderBtn = document.getElementById('placeOrderBtn');
+
+            // Progress steps indicators
+            const progressSteps = document.querySelectorAll('.flex.justify-between.mb-8 .w-10.h-10');
+
+            // Continue to payment
+            shippingContinueBtn.onclick = function() {
+                shippingStep.classList.add('hidden');
+                paymentStep.classList.remove('hidden');
+
+                // Update progress indicator
+                progressSteps[0].classList.remove('bg-blue-500');
+                progressSteps[0].classList.add('bg-green-500');
+                progressSteps[1].classList.remove('bg-gray-700');
+                progressSteps[1].classList.add('bg-blue-500');
+            };
+
+            // Back to shipping
+            backToShippingBtn.onclick = function() {
+                paymentStep.classList.add('hidden');
+                shippingStep.classList.remove('hidden');
+
+                // Update progress indicator
+                progressSteps[0].classList.add('bg-blue-500');
+                progressSteps[0].classList.remove('bg-green-500');
+                progressSteps[1].classList.add('bg-gray-700');
+                progressSteps[1].classList.remove('bg-blue-500');
+            };
+
+            // Continue to review
+            paymentContinueBtn.onclick = function() {
+                paymentStep.classList.add('hidden');
+                reviewStep.classList.remove('hidden');
+
+                // Update progress indicator
+                progressSteps[1].classList.remove('bg-blue-500');
+                progressSteps[1].classList.add('bg-green-500');
+                progressSteps[2].classList.remove('bg-gray-700');
+                progressSteps[2].classList.add('bg-blue-500');
+            };
+
+            // Back to payment
+            backToPaymentBtn.onclick = function() {
+                reviewStep.classList.add('hidden');
+                paymentStep.classList.remove('hidden');
+
+                // Update progress indicator
+                progressSteps[1].classList.add('bg-blue-500');
+                progressSteps[1].classList.remove('bg-green-500');
+                progressSteps[2].classList.add('bg-gray-700');
+                progressSteps[2].classList.remove('bg-blue-500');
+            };
+
+            // // Place order
+            // placeOrderBtn.onclick = function(e) {
+            //     // e.preventDefault();
+
+            //     // Show confirmation modal
+            //     const orderConfirmationModal = document.getElementById('orderConfirmationModal');
+            //     orderConfirmationModal.classList.remove('hidden');
+
+            //     // Generate random order number with current date
+            //     const today = new Date();
+            //     const orderNumber = 'MVM-{{user.id}}-' +
+            //         today.getFullYear() +
+            //         ('0' + (today.getMonth() + 1)).slice(-2) +
+            //         ('0' + today.getDate()).slice(-2) +
+            //         ('0' + Math.floor(Math.random() * 100)).slice(-2);
+
+            //     document.getElementById('orderNumber').textContent = orderNumber;
+            // };
+
+            // Payment method toggle
+            const payondelivaryRadio = document.getElementById('payondelivary');
+            const creditCardRadio = document.getElementById('creditCard');
+            const upiRadio = document.getElementById('upi');
+            const creditCardForm = document.getElementById('creditCardForm');
+            const upiForm = document.getElementById('upiForm');
+
+            payondelivaryRadio.onchange = function() {
+                if (this.checked) {
+                    creditCardForm.classList.add('hidden');
+                    upiForm.classList.add('hidden');
+                }
+            };
+
+            creditCardRadio.onchange = function() {
+                if (this.checked) {
+                    creditCardForm.classList.remove('hidden');
+                    upiForm.classList.add('hidden');
+                }
+            };
+
+            upiRadio.onchange = function() {
+                if (this.checked) {
+                    upiForm.classList.remove('hidden');
+                    creditCardForm.classList.add('hidden');
+                }
+            };
+
+            // Billing address toggle
+            const sameAsShippingCheckbox = document.getElementById('sameAsShipping');
+            const billingAddressForm = document.getElementById('billingAddressForm');
+
+            sameAsShippingCheckbox.onchange = function() {
+                if (this.checked) {
+                    billingAddressForm.classList.add('hidden');
+                } else {
+                    billingAddressForm.classList.remove('hidden');
+                }
+            };
+
+            // Shipping method cost update
+            const standardShipping = document.getElementById('standardShipping');
+            const expressShipping = document.getElementById('expressShipping');
+            const shippingCost = parseFloat(document.getElementById('shippingCost').getAttribute("data-price"));
+            const subtotalElement = document.getElementById('subtotal');
+            const shippingCostElement = document.getElementById('shippingCost');
+            // const taxElement = document.getElementById('tax');
+            const orderTotalElement = document.getElementById('orderTotal');
+
+            // Base subtotal
+            const subtotal = parseFloat(document.getElementById("subtotal").getAttribute("data-price"));
+            // const tax = parseFloat((subtotal*18)/100);
+            // console.log( tax );
+            console.log( subtotal );
+            //console.log( tax );
+            //console.log( new Intl.NumberFormat("en-IN").format(45000.00));
+            //console.log( tax_length );
+
+
+            function updateTotal(shippingCost) {
+                // const total = subtotal + tax + shippingCost;
+                const total = subtotal + shippingCost;
+                console.log(total)
+                // Ensure shippingCost is a number before toFixed
+                const formattedShippingCost = typeof shippingCost === 'number' ? shippingCost.toFixed(2) : parseFloat(shippingCost).toFixed(2);
+
+                subtotalElement.textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'INR'}).format(subtotal);
+                // taxElement.textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'INR'}).format(tax);
+                shippingCostElement.textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'INR'}).format(parseFloat(formattedShippingCost)); // Parse back to number for formatting
+                orderTotalElement.textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'INR'}).format(total);
+            }
+
+            standardShipping.onchange = function() {
+                if (this.checked) {
+                    updateTotal(40);
+                    document.getElementById('reviewShippingMethod').textContent = 'Standard Shipping (5-7 business days)';
+                }
+            };
+
+            expressShipping.onchange = function() {
+                if (this.checked) {
+                    updateTotal(100);
+                    document.getElementById('reviewShippingMethod').textContent = 'Express Shipping (2-3 business days)';
+                }
+            };
+
+            // Update total on load
+            // Corrected window.addEventListner to window.addEventListener
+            window.addEventListener("load", function() {
+                 updateTotal(shippingCost);
+            });
+
+
+            //            overnightShipping.onchange = function() {
+            //                if (this.checked) {
+            //                    updateTotal(24.99);
+            //                    document.getElementById('reviewShippingMethod').textContent = 'Overnight Shipping (Next business day)';
+            //                }
+            //            };
+
+            // Populate review information
+            function populateReviewInformation() {
+                // Shipping info
+                // This needs to be updated to get data from the *selected* saved address
+                // or the new address form if filled.
+                const firstName = document.getElementById('name')?.getAttribute("data-value") || 'John'; // Using ? for optional chaining
+                const contact = document.getElementById('contact')?.getAttribute("data-value") || '';
+                const address = document.getElementById('address')?.getAttribute("data-value") || '123 Main St';
+                const locality = document.getElementById('locality')?.getAttribute("data-value") || '';
+                const city = document.getElementById('city')?.getAttribute("data-value") || 'Anytown';
+                const state = document.getElementById('state')?.getAttribute("data-value") || 'ST';
+                const pincode = document.getElementById('pincode')?.getAttribute("data-value") || '12345';
+                const landmark = document.getElementById('landmark')?.getAttribute("data-value") || '';
+                const alternatephone = document.getElementById('alternatePhone')?.getAttribute("data-value") || '';
+                const addressType = document.querySelector('input[name="AddressType"]:checked')?.value || 'Home';
+
+
+                document.getElementById('reviewShippingName').textContent = firstName + ' ' + (contact ? `(${contact})` : ''); // Added contact
+                document.getElementById('reviewShippingAddress').textContent = address + (locality ? `, ${locality}` : '') + (landmark ? ` near ${landmark}` : ''); // Added locality and landmark
+                document.getElementById('reviewShippingCityState').textContent = city + ', ' + state + ' – ' + pincode; // Updated format
+                document.getElementById('reviewShippingCountry').textContent = 'India'; // Hardcoded based on address structure
+
+
+                // Payment info
+                let paymentMethod = 'Pay On Delivery';
+                let cardIcon = '<span class="material-symbols-outlined ef63"> payments </span>';
+                const reviewPaymentMethodElement = document.getElementById('reviewPaymentMethod');
+                const reviewCardNumberElement = document.getElementById('reviewCardNumber');
+
+
+                if (upiRadio.checked) {
+                    paymentMethod = 'PayPal';
+                //    cardIcon = '<i class="fab fa-cc-paypal ml-2 text-xl"></i>';
+                    cardIcon = '<span class="material-symbols-outlined f3cf">upi_pay</span>';
+                    reviewCardNumberElement.textContent = ''; // Clear card number for PayPal
+                } else if(creditCardRadio.checked) {
+                    cardIcon = '<span class="material-symbols-outlined e870"> credit_card </span>';
+                    console.log("PAY via CARD")
+                    paymentMethod = 'Pay via Card'
+                    const cardNumberInput = document.getElementById('cardNumber');
+                    const cardNumber = cardNumberInput ? cardNumberInput.value : '1234';
+                        const last4 = cardNumber.slice(-4) || '1234';
+                    reviewCardNumberElement.textContent = '**** **** **** ' + last4;
+                    // Determine card icon based on card number (basic check)
+                     if (cardNumber.startsWith('4')) cardIcon = '<i class="fab fa-cc-visa ml-2 text-xl text-blue-400"></i>';
+                     else if (cardNumber.startsWith('5')) cardIcon = '<i class="fab fa-cc-mastercard ml-2 text-xl text-red-400"></i>';
+                     // Add more checks for other card types if needed
+                }else {
+                    paymentMethod = 'Pay On delivery'
+                    reviewCardNumberElement.textContent = '';
+                    console.log("PAY ON DELIVERY")
+                }
+
+                 reviewPaymentMethodElement.innerHTML = `${paymentMethod} ${cardIcon}`; // Set both text and icon
+
+            }
+
+            // Update review information when continuing to review step
+            paymentContinueBtn.addEventListener('click', populateReviewInformation); // Use addEventListener
+
+            // -------------------------------------------------------------------------
+            // Add New Address Modal Logic
+            const addNewAddressBtn = document.getElementById('addNewAddressBtn');
+            const addressModal = document.getElementById('AddressModal');
+            const modalContent = addressModal.querySelector('.bg-gray-800');
+            const closeNewModalBtn = document.getElementById('closeNewModalBtnInside'); // **Corrected ID**
+            const addressForm = document.getElementById('AddressForm'); // Get the form
+
+
+            // Open modal
+            if(addNewAddressBtn) { // Check if the button exists
+                addNewAddressBtn.addEventListener('click', function () { // Use addEventListener
+                    addressModal.classList.remove('hidden');
+                    addressModal.classList.add('flex'); // Ensure it's displayed as flex
+                });
+            }
+
+
+            // Close modal
+            function closeNewAddressModal() {
+                addressModal.classList.add('hidden');
+                addressModal.classList.remove('flex'); // Remove flex when hiding
+                clearNewAddressForm(); // Clear the form when closing
+            }
+
+            // Use addEventListener for closing buttons
+            if(closeNewModalBtn) { // Check if the button exists
+                 closeNewModalBtn.addEventListener('click', closeNewAddressModal);
+            }
+
+
+            // Close modal on outside click
+            if(addressModal && modalContent) { // Check if elements exist
+                 addressModal.addEventListener('click', (e) => {
+                     // Check if the click target is outside the modal content *and* not the close button itself
+                     if (!modalContent.contains(e.target) && e.target !== closeNewModalBtn) {
+                         closeNewAddressModal();
+                     }
+                 });
+            }
+
+
+            // Clear form function
+            function clearNewAddressForm() {
+                addressForm.reset();
+                // Also manually hide the 'Other' input if it was visible
+                const otherAddressTypeRadio = addressForm.querySelector('input[name="AddressType"][value="other"]');
+                const otherAddressInputContainer = document.getElementById('otherInput');
+                 if (otherAddressTypeRadio && otherAddressInputContainer) {
+                     otherAddressInputContainer.classList.add('hidden');
+                 }
+            }
+
+            // Handle form submission (replace with your actual save logic)
+            addressForm.addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevent default form submission
+
+                console.log('New Address Form submitted (prevented for demo)');
+
+                // Collect form data
+                const formData = new FormData(addressForm);
+                const newAddressData = {};
+                formData.forEach((value, key) => {
+                    newAddressData[key] = value;
+                });
+            
+                deliveryAddressElement = document.getElementById("deliveryAddress")
+                deliveryAddressElement.value = newAddressData
+                console.log("New Address Data:", newAddressData);
+
+                // **Here you would typically send `newAddressData` to your backend**
+                // **using fetch API or similar, to save the new address.**
+
+                // Example placeholder for successful save:
+                // After successfully saving the address on the backend:
+                // 1. You might receive the saved address details and its ID from the backend.
+                // 2. You would then dynamically add the new address HTML block to the page
+                //    similar to the commented-out saveNewAddress logic below.
+                // 3. Close the modal.
+
+                // Placeholder simulation of adding the new address to the list:
+                // (Remove this section and implement real backend saving)
+                /*
+                const newAddressHtml = `
+                    <div class="address-item border-l-4 border-blue-500 border-blue-500 rounded-lg overflow-hidden bg-gray-900 hover:shadow-md hover:border-blue-400 transition duration-200">
+                        <label class="flex items-start p-4 cursor-pointer w-full">
+                            <input type="radio" name="savedAddress" value="${newAddressData.AddressType}" class="mt-1 mr-3 form-radio text-blue-600 bg-gray-800 border-gray-700 focus:ring-blue-500" checked> {# Check the new address #}
+                            <div class="flex-1">
+                                <div class="font-semibold text-blue-400 address-type">${newAddressData.AddressType}</div>
+                                <div class="text-gray-300 address-details">
+                                    <div class="w-1/2 mt-3 grid grid-cols-2 gap-x-4 font-semibold text-white address-name">
+                                        <div>${newAddressData.Name}</div>
+                                        <div class="text-left text-gray-400 font-normal">${newAddressData.Mobile}</div>
+                                    </div>
+                                    <hr class="border-2 border-gray-700 my-2 w-1/5">
+                                    <div>${newAddressData.Address}</div>
+                                    <div>${newAddressData.City}, ${newAddressData.State} – ${newAddressData.Pincode}</div>
+                                    <div>India</div> {# Assuming India for now #}
+                                </div>
+                            </div>
+                            <button class="edit-btn text-indigo-300 hover:text-indigo-200 hover:bg-indigo-900 hover:bg-opacity-30 px-4 py-2 rounded-md transition duration-200 font-medium"
+                                data-id="NEWLY_SAVED_ID" {# **Replace with the actual ID from your backend response** #}
+                                data-name="${newAddressData.Name}"
+                                data-contact="${newAddressData.Mobile}"
+                                data-address="${newAddressData.Address}"
+                                data-locality="${newAddressData.Locality}"
+                                data-pincode="${newAddressData.Pincode}"
+                                data-city="${newAddressData.City}"
+                                data-state="${newAddressData.State}"
+                                data-landmark="${newAddressData.Landmark}"
+                                data-alternatePhone="${newAddressData.AlternatePhone}"
+                                data-type="${newAddressData.AddressType}">Edit</button>
+                        </label>
+                    </div>
+                `;
+                const addNewAddressBtnElement = document.getElementById('addNewAddressBtn');
+                if (addNewAddressBtnElement) {
+                    addNewAddressBtnElement.insertAdjacentHTML('beforebegin', newAddressHtml);
+                    // Re-attach event listeners to the new edit button if necessary
+                    // (Or ideally, use event delegation on a parent element)
+                }
+                */
+
+                // Assuming successful submission, close the modal
+                closeNewAddressModal();
+
+            });
+
+
+            // Original saveNewAddress function (now handled by form submit listener)
+            // Remove or comment out this function entirely
+            /*
+                saveNewAddress.onclick = function () {
+                    // ... original logic ...
+                     closeModal();
+                    clearNewAddressForm();
+                    // ... rest of original logic ...
+                };
+             */
+            // -------------------------------------------------------------------------------
+
+            // Other address type input toggle in New Address Modal
+            const newAddressOtherRadioButton = document.querySelector('#AddressModal input[value="other"]');
+            const newAddressOtherInputField = document.getElementById('otherInput');
+
+            if (newAddressOtherRadioButton && newAddressOtherInputField) {
+                newAddressOtherRadioButton.addEventListener('change', function() {
+                    if (this.checked) {
+                        newAddressOtherInputField.classList.remove('hidden');
+                        // Add 'required' if needed, but form submission validation is better
+                        // newAddressOtherInputField.classList.add('required');
+                    }
+                });
+
+                // Hide input field when "Home" or "Work" is selected for Add Modal
+                const newAddressHomeRadioButton = document.querySelector('#AddressModal input[value="home"]');
+                const newAddressWorkRadioButton = document.querySelector('#AddressModal input[value="work"]');
+
+                if (newAddressHomeRadioButton) {
+                    newAddressHomeRadioButton.addEventListener('change', function() {
+                        if (this.checked) {
+                            newAddressOtherInputField.classList.add('hidden');
+                            // newAddressOtherInputField.classList.remove('required');
+                             newAddressOtherInputField.querySelector('input').value = ''; // Clear the other input
+                        }
+                    });
+                }
+
+                 if (newAddressWorkRadioButton) {
+                    newAddressWorkRadioButton.addEventListener('change', function() {
+                        if (this.checked) {
+                            newAddressOtherInputField.classList.add('hidden');
+                            // newAddressOtherInputField.classList.remove('required');
+                            newAddressOtherInputField.querySelector('input').value = ''; // Clear the other input
+                        }
+                    });
+                }
+            }
+
+
+            // Update review information based on selected address
+            // This needs to handle selection of both existing addresses and the newly added one
+            // It's better to use event delegation for this on a parent container that holds all address items.
+            const savedAddressContainer = document.querySelector('.space-y-3.mb-6'); // Container holding addresses and add button
+
+            if (savedAddressContainer) {
+                savedAddressContainer.addEventListener('change', function(event) {
+                    // Check if the changed element is one of the savedAddress radio buttons
+                    if (event.target.tagName === 'INPUT' && event.target.name === 'savedAddress' && event.target.type === 'radio' && event.target.checked) {
+                        const selectedRadio = event.target;
+                        const addressContainer = selectedRadio.closest('label'); // Get the label containing the address info
+
+                        // Extract data from the selected address HTML structure
+                        const nameElement = addressContainer.querySelector('.address-name div:first-child');
+                        const contactElement = addressContainer.querySelector('.address-name div:last-child'); // Assuming contact is the last div in .address-name
+                        const addressLines = addressContainer.querySelectorAll('.address-details div');
+                        const addressTypeElement = addressContainer.querySelector('.address-type');
+
+
+                        const name = nameElement ? nameElement.textContent.trim() : '';
+                        const contact = contactElement ? contactElement.textContent.trim() : '';
+                        const fullAddressLine = addressLines.length > 1 ? addressLines[1].textContent.trim() : ''; // e.g., 123 Main St, Apt 4B
+                        const cityStateZipLine = addressLines.length > 2 ? addressLines[2].textContent.trim() : ''; // e.g., New York, NY 10001
+                        const countryLine = addressLines.length > 3 ? addressLines[3].textContent.trim() : ''; // e.g., United States
+
+
+                        // Update review information
+                        document.getElementById('reviewShippingName').textContent = name + (contact ? ` (${contact})` : '');
+                        document.getElementById('reviewShippingAddress').textContent = fullAddressLine;
+                        document.getElementById('reviewShippingCityState').textContent = cityStateZipLine;
+                        document.getElementById('reviewShippingCountry').textContent = countryLine;
+
+                        // Update address type in review (optional, if you want to show it)
+                        // const reviewAddressTypeElement = document.getElementById('reviewShippingAddressType'); // You might need to add this element
+                        // if (reviewAddressTypeElement && addressTypeElement) {
+                        //     reviewAddressTypeElement.textContent = addressTypeElement.textContent.trim();
+                        // }
+
+                         // You might also need to update the phone number in review if needed
+                         // const phoneElement = addressContainer.querySelector('.address-details div:last-child'); // Adjust selector as needed
+                         // if (phoneElement) {
+                         //      document.getElementById('reviewShippingPhone').textContent = phoneElement.textContent.trim(); // Need an element with id="reviewShippingPhone"
+                         // }
+                    }
+                });
+            }
+        });
+    </script>
+
+    <script>
+        // Get the radio buttons and the input field for the Add New Address Modal (Corrected)
+        const newAddressModalOtherRadioButton = document.querySelector('#AddressModal input[name="AddressType"][value="other"]');
+        const newAddressModalOtherInputField = document.getElementById('otherInput');
+
+        if (newAddressModalOtherRadioButton && newAddressModalOtherInputField) {
+            newAddressModalOtherRadioButton.addEventListener('change', function() {
+                if (this.checked) {
+                    newAddressModalOtherInputField.classList.remove('hidden');
+                }
+            });
+
+            // Hide input field when "Home" or "Work" is selected for Add Modal (Corrected)
+            const newAddressModalHomeRadioButton = document.querySelector('#AddressModal input[name="AddressType"][value="home"]');
+            const newAddressModalWorkRadioButton = document.querySelector('#AddressModal input[name="AddressType"][value="work"]');
+
+            if (newAddressModalHomeRadioButton) {
+                newAddressModalHomeRadioButton.addEventListener('change', function() {
+                    if (this.checked) {
+                        newAddressModalOtherInputField.classList.add('hidden');
+                         newAddressModalOtherInputField.querySelector('input').value = ''; // Clear the other input
+                    }
+                });
+            }
+
+             if (newAddressModalWorkRadioButton) {
+                newAddressModalWorkRadioButton.addEventListener('change', function() {
+                    if (this.checked) {
+                        newAddressModalOtherInputField.classList.add('hidden');
+                        newAddressModalOtherInputField.querySelector('input').value = ''; // Clear the other input
+                    }
+                });
+            }
+        }
+        document.getElementById('placeOrderBtn').addEventListener('click', function (e) {
+            orderTotal = document.getElementById("orderTotal").innerText
+            let total = ""
+            for (let char = 0; char < orderTotal.length; char++) {
+                
+                if (orderTotal[char] === "."){
+                    break;
+                }
+                if(!isNaN(parseFloat(orderTotal[char]))){
+                    total += String(orderTotal[char])
+                }
+                const element = orderTotal[char];    
+            }
+            document.getElementById("totalPrice").value = total
+            
+            document.getElementById('checkoutForm').submit();
+        });
+
+    </script>
+
+    <script>
+        function sendShipment() {
+            const orderIDInput = document.getElementById("")
+        }
+    </script>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll('.edit-btn').forEach(button => {
+            button.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const modal = document.getElementById('AddressModal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+
+                document.getElementById('Name').value = this.dataset.name || '';
+                document.getElementById('Mobile').value = this.dataset.contact || '';
+                document.getElementById('Address').value = this.dataset.address || '';
+                document.getElementById('Locality').value = this.dataset.locality || '';
+                document.getElementById('Pincode').value = this.dataset.pincode || '';
+                document.getElementById('City').value = this.dataset.city || '';
+                document.getElementById('State').value = this.dataset.state || '';
+                document.getElementById('Landmark').value = this.dataset.landmark || '';
+                document.getElementById('AlternatePhone').value = this.dataset.alternatePhone || '';
+
+                const type = this.dataset.type || 'home';
+                const typeRadio = document.querySelector(`#AddressModal input[name="AddressType"][value="${type}"]`);
+
+                if (typeRadio) {
+                    typeRadio.checked = true;
+                    document.getElementById('otherInput').classList.add('hidden');
+                } else {
+                    document.querySelector('#AddressModal input[value="other"]').checked = true;
+                    document.getElementById('otherInput').classList.remove('hidden');
+                    document.getElementById('otherAddress').value = type;
+                }
+            });
+        });
+    });
+    </script>
+
+{% endblock %}
+
+{% block footer %}
+    {{block.super}}
+{% endblock footer %}
+

@@ -1,0 +1,306 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register and Start Selling</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gray: {
+                            750: '#2f3542',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md space-y-8 bg-gray-800 p-8 rounded-xl shadow-2xl">
+        <div class="text-center">
+            <h2 class="mt-6 text-3xl font-extrabold tracking-tight">
+                Register and Start Selling
+            </h2>
+        </div>
+        <form class="mt-8 space-y-6" method="POST">
+            {% csrf_token %}
+            <div class="space-y-5">
+                <label for="" class="block text-sm font-medium text-gray-300">
+                    27AAACR5055K1Z7            ---         RELIANCE DIGITAL
+                </label>
+                <div>
+                    <label for="companyName" class="block text-sm font-medium text-gray-300">
+                        Company/Business Name
+                    </label>
+                    <div class="mt-1">
+                        <input id="companyName" name="companyName" type="text" required
+                            class="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-100 placeholder-gray-400
+                            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
+                            placeholder="As per GST and PAN"
+                            autocomplete="off">
+                    </div>
+                    <p id="message1" name="message1"></p>
+                </div>                
+
+                <div>
+                    <label for="gstin" class="block text-sm font-medium text-gray-300">
+                        GSTIN
+                    </label>
+                    <div class="mt-1">
+                        <input id="gstin" name="gstin" type="text" required
+                            class="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-100 placeholder-gray-400
+                            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
+                            placeholder="Enter GST number"
+                            autocomplete="off">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="storeName" class="block text-sm font-medium text-gray-300">
+                        Store Name
+                    </label>
+                    <div class="mt-1">
+                        <input id="storeName" name="storeName" type="text" 
+                            class="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-100 placeholder-gray-400
+                            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
+                            placeholder="Unique name displayed to buyers"
+                            autocomplete="off" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="address" class="block text-sm font-medium text-gray-300">
+                        Address
+                    </label>
+                    <div class="mt-1">
+                        <textarea id="address" name="address" rows="3" required
+                            class="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-100 placeholder-gray-400
+                            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
+                            placeholder="Enter your full address"></textarea>
+                    </div>
+                </div>
+                <div class="flex flex-col md:flex-row space-x-4">
+                    <div class="w-full">
+                        <label for="pincode" class="block text-sm font-medium text-gray-300">
+                            Pincode
+                        </label>
+                        <div class="mt-1">
+                            <input id="pincode" name="pincode" type="text" required
+                                maxlength="6"
+                                class="block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-100 placeholder-gray-400
+                                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-gray-700
+                                transition duration-150 ease-in-out"
+                                placeholder="pincode"
+                                autocomplete="off">
+                            <p id="message" name="message"></p>
+                        </div>
+                    </div>
+                
+                    <div class="w-full">
+                        <label for="city" class="flex text-sm font-medium text-gray-300">
+                            City
+                        </label>
+                        <div class="mt-1">
+                            <input id="city" name="city" type="text" required
+                                class="flex w-full px-3 py-2 bg-gray-600 border border-gray-600 rounded-md text-gray-100 placeholder-gray-400
+                                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
+                                placeholder="-city-" autocomplete="off">
+                        </div>
+                    </div>
+                
+                </div>
+                <div class="flex space-x-4">
+                    <div class="w-full">
+                        <label for="district" class="flex text-sm font-medium text-gray-300">
+                            District
+                        </label>
+                        <div class="mt-1">
+                            <input id="district" name="district" type="text" required
+                                class="flex w-full px-3 py-2 bg-gray-600 border border-gray-600 rounded-md text-gray-100 placeholder-gray-400
+                                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
+                                placeholder="-district-" disabled autocomplete="off">
+                        </div>
+                    </div>
+                
+                    <div class="w-full">
+                        <label for="state" class="flex text-sm font-medium text-gray-300">
+                            State
+                        </label>
+                        <div class="mt-1">
+                            <input id="state" name="state" type="text" required
+                                class="flex w-full px-3 py-2 bg-gray-600 border border-gray-600 rounded-md text-gray-100 placeholder-gray-400
+                                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
+                                placeholder="-state-" disabled autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    
+                </div>
+            </div>
+
+            <div class="flex items-center">
+                <input id="link-checkbox" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                <label for="link-checkbox" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">I agree with the <a href="#" class="text-blue-600 dark:text-blue-500 hover:underline">terms and conditions</a>.</label>
+            </div>
+            <div>
+                <button id="register" name="register" type="submit" disabled class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md disabled:bg-gray-600 text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                        <svg class="h-5 w-5 text-blue-500 group-hover:text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                    Register and Start Selling
+                </button>
+            </div>
+        </form>
+    <!-- </div> -->
+    <script src="../static/js/script.js"></script>
+
+    <!-- <script src="../static/script.js"></script> -->
+</body>
+</html>
+
+<!-- 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pincode Validator with City, District, and State</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+        .success {
+            color: green;
+            font-size: 14px;
+        }
+        .info {
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Pincode Validator</h2>
+        <form id="pincodeForm">
+            <label for="pincode">Enter Pincode:</label>
+            <input type="text" id="pincode" name="pincode" maxlength="6" required>
+
+            <label for="city">City:</label>
+            <input type="text" id="city" name="city" placeholder="city" disabled>
+
+            <label for="district">District:</label>
+            <input type="text" id="district" name="district" placeholder="district" disabled>
+
+            <label for="state">State:</label>
+            <input type="text" id="state" name="state" placeholder="state" disabled>
+
+            <p id="message"></p>
+        </form>
+    </div>
+
+    <script>
+        // Function to make API call and update fields in real-time
+        function updateLocationData(pincode) {
+            const messageElement = document.getElementById('message');
+            const cityField = document.getElementById('city');
+            const districtField = document.getElementById('district');
+            const stateField = document.getElementById('state');
+            
+            // Clear previous messages
+            messageElement.textContent = '';
+            cityField.value = '';
+            districtField.value = '';
+            stateField.value = '';
+
+            // Regular expression to validate pincode (6 digits)
+            const pincodeRegex = /^[0-9]{6}$/;
+
+            // If pincode is invalid, return early
+            if (!pincode.match(pincodeRegex)) {
+                return;
+            }
+
+            // Fetch data from the API
+            fetch(`https://api.postalpincode.in/pincode/${pincode}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data[0].Status === 'Success') {
+                        const postInfo = data[0].PostOffice[0];
+                        const city = postInfo.Name;
+                        const district = postInfo.District;
+                        const state = postInfo.State;
+
+                        // Update the input fields with city, district, and state
+                        cityField.value = city;
+                        districtField.value = district;
+                        stateField.value = state;
+
+                        messageElement.textContent = 'Pincode is valid!';
+                        messageElement.className = 'success';
+                    } else {
+                        messageElement.textContent = 'Pincode not found or invalid.';
+                        messageElement.className = 'error';
+                    }
+                })
+                .catch(error => {
+                    messageElement.textContent = 'Error fetching data from the API.';
+                    messageElement.className = 'error';
+                    console.error('Error fetching pincode data:', error);
+                });
+        }
+
+        // Event listener for real-time pincode validation
+        document.getElementById('pincode').addEventListener('input', function() {
+            const pincode = this.value.trim();
+            updateLocationData(pincode);
+        });
+    </script>
+
+</body>
+</html> -->

@@ -1,0 +1,143 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-commerce Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=logout" />
+</head>
+<body class="dark bg-gray-900 text-gray-100 min-h-screen">
+    
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="hidden md:flex md:w-64 md:flex-col">
+            <div class="flex min-h-0 flex-1 flex-col border-r border-gray-800 bg-gray-900">
+                <div class="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
+                    {% if seller %}
+                    <div class="flex flex-shrink-0 items-center px-4">
+                        <span class="text-xl font-bold text-gray-100">{{ seller.name }}</span>
+                    </div>
+                    {% endif %}
+                    <nav class="mt-5 flex-1 space-y-1 px-2">
+                        <a href="#" onclick="loadPage('dashboard')" class="bg-gray-800 text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                            Dashboard
+                        </a>
+                        <a href="#" onclick="loadPage('products')" class="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                            Products
+                        </a>
+                        <a href="#" onclick="loadPage('orders')" class="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                            Orders
+                        </a>
+                    </nav>
+                </div>
+                <div class="flex flex-shrink-0 border-t border-gray-800 p-4">
+                    <div class="group block w-max flex-shrink-0">
+                        <a href="#" onclick="loadPage('profile')" class="flex items-center">
+                            <!-- Profile Picture -->
+                            <div>
+                                {% if seller.image %}
+                                <img class="inline-block h-9 w-9 rounded-full" src="{{seller.image.url}}" alt="">
+                                {% else %}
+                                <img class="inline-block h-9 w-9 rounded-full" src="{% static "images/profile.png" %}" alt="">
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Profile Info -->
+                            <div class="ml-3 flex flex-col justify-center">
+                                <p class="text-sm font-medium text-gray-300">{{ seller.name }}</p>
+                                <p class="text-xs font-medium text-gray-500">View Profile</p>
+                            </div>
+                            
+                            <!-- Logout Icon -->
+                        </a>
+                    </div>
+                    <a href="logout" class="ml-auto w-fit flex items-center group-hover">
+                        
+                        <div class="relative group inline-block">
+                            <!-- Button with Icon -->
+                            <button class="flex items-center justify-center">
+                                <!-- Example Icon (you can use any icon here) -->
+                                <!-- <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7" />
+                                </svg> -->
+                                <span class="material-symbols-outlined">
+                                    logout
+                                </span>
+                            </button>
+                            
+                            <!-- Text shown above the icon on hover -->
+                            <span class="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 text-sm text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                              Logout
+                            </span>
+                          </div>
+                          
+                          
+                    </a>
+                </div>
+                
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <div class="flex flex-1 flex-col overflow-hidden">
+            <!-- Top nav -->
+            <header class="bg-gray-800 shadow-sm">
+                <div class="flex h-16 items-center justify-between px-4">
+                    <div class="flex">
+                        <button type="button" class="md:hidden px-4 text-gray-400 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="flex items-center">
+                        <button type="button" class="rounded-full bg-gray-800 p-1 text-gray-400 hover:text-gray-300">
+                            <span class="sr-only">View notifications</span>
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- iframe container -->
+            <main class="flex-1 overflow-hidden">
+                <iframe id="contentFrame" class="w-full h-full border-0" src="dashboard"></iframe>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function loadPage(url) {
+            document.getElementById('contentFrame').src = url;
+            
+            // Update active state of navigation items
+            document.querySelectorAll('nav a').forEach(link => {
+                if (link.getAttribute('onclick').includes(url)) {
+                    link.classList.add('bg-gray-800', 'text-white');
+                    link.classList.remove('text-gray-300');
+                } else {
+                    link.classList.remove('bg-gray-800', 'text-white');
+                    link.classList.add('text-gray-300');
+                }
+            });
+        }
+
+        // Handle mobile menu
+        const menuButton = document.querySelector('button');
+        const sidebar = document.querySelector('aside');
+        
+        menuButton.addEventListener('click', () => {
+            sidebar.classList.toggle('hidden');
+        });
+    </script>
+</body>
+</html>

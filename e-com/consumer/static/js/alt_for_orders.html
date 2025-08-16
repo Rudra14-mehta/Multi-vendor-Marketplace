@@ -1,0 +1,610 @@
+    {% extends "layout.html" %}
+    {% load custom_tags %}
+
+    {% block title %}orders{% endblock title %}
+
+    {% block content %}
+        <main class="container mx-auto px-4 py-8">
+            <!-- Order Statistics -->
+            <div class="flex justify-center">
+                <div class="mb-8 w-full max-w-4xl">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Total Orders -->
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-blue-100 dark:bg-blue-900 text-primary-600 dark:text-primary-400 mr-4">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Orders</p>
+                                    <p class="text-2xl font-semibold text-gray-900 dark:text-white" id="total-orders">0</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Completed -->
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 mr-4">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Completed</p>
+                                    <p class="text-2xl font-semibold text-gray-900 dark:text-white" id="completed-orders">0</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- In Progress -->
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-yellow-100 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-400 mr-4">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">In Progress</p>
+                                    <p class="text-2xl font-semibold text-gray-900 dark:text-white" id="inprogress-orders">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders List -->
+            <div class="flex justify-center">
+                <div class="space-y-4 w-full max-w-3/4" id="orders-container">
+                    {% if orders %}
+                        {% for order in orders %}
+                            {% with order=order|get_order_from_id %}
+                                <div class="bg-gray-900 border border-gray-800 rounded-2xl shadow-xl max-w-4xl mx-auto overflow-hidden transition hover:border-gray-700 duration-300">
+                                    <!-- Header -->
+                                    <div class="bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-700 p-5 flex items-center justify-between">
+                                        <div>
+                                            <h2 class="order-id text-white text-lg font-semibold">Order: #{{order.orderID}} 
+                                                <span class="order-status inline-flex items-center text-xs font-medium px-3 py-1 rounded-full border
+                                                            {% if order.get_shipment_display == 'Express' %}
+                                                                bg-red-600/50 text-red-400 border-red-600/60
+                                                            {% else %}
+                                                                bg-gray-200/10 text-gray-100 border-gray-300/20 dark:bg-green-600/20 dark:text-green-300 dark:border-green-600/30
+                                                            {% endif %}">
+                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                                    </svg>
+                                                    {{ order.get_shipment_display }}
+                                                </span>
+                                            </h2>
+                                            <p class="text-purple-200 text-sm mt-1">{{order.orderOn}}</p>
+                                        </div>
+                                        <span class="status inline-flex items-center text-xs font-medium bg-yellow-500/20 text-yellow-300 px-3 py-1 rounded-full border border-yellow-500/30">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            {{ order.get_status_display }}
+                                        </span>
+                                    </div>
+
+                                    <!-- Body -->
+                                    <div class="p-6 space-y-6">
+                                        <!-- Products -->
+                                        <div class="products-container">
+                                            {% with products=order.products|first %}
+                                            {% for productId, quantity in products.items %}
+                                            {% with product=productId|get_product_from_id %}
+                                                <div class="product flex items-center">
+                                                    <img src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=764&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="{{ product.name }}" class="w-14 mb-2 h-14 object-cover rounded mr-4">
+                                                    <div>
+                                                        <p class="text-sm font-medium text-white">{{ product.name }}</p>
+                                                        <p class="text-xs text-gray-400">Qty: {{ quantity }}</p>
+                                                    </div>
+                                                </div>
+                                            {% endwith %}
+                                            {% endfor %}
+                                            {% endwith %}
+                                        </div>
+
+                                        <!-- Product Data for Modal -->
+                                        <script type="application/json" id="products-{{ order.orderID }}">
+                                        [
+                                            {% with products=order.products|first %}
+                                                {% for pid, qty in products.items %}
+                                                    {% with product=pid|get_product_from_id %}
+                                                    {
+                                                        "id": "{{ product.id }}",
+                                                        "name": "{{ product.name }}",
+                                                        "image": "{{ product.image }}",
+                                                        "price": "{{ product.price }}",
+                                                        "address": "{{ order.address }}",
+                                                        "quantity": {{ qty }}
+                                                    }{% if not forloop.last %},{% endif %}
+                                                    {% endwith %}
+                                                {% endfor %}
+                                            {% endwith %}
+                                        ]
+                                        </script>
+
+                                        <!-- Total & Button -->
+                                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                            <div>
+                                                <p class="text-sm text-gray-400">Total</p>
+                                                <p class="text-2xl font-bold text-white">{{order.price|format_inr}}</p>
+                                            </div>
+                                            <button onclick="openOrderDetails(event)" class="view-order w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-6 rounded-lg transition-colors font-medium" 
+                                                data-orderid="{{ order.orderID }}"
+                                                data-orderdate="{{ order.orderOn }}"
+                                                data-status="{{ order.get_status_display }}"
+                                                data-payment="{{ order.get_paymentMethod_display }}"
+                                                data-shipment="{{ order.get_shipment_display }}"
+                                                data-address="{{ order.address }}"
+                                                data-price="{{ order.price }}"
+                                                data-tax="{{ order.price }}"
+                                                data-total="{{ order.price }}">
+                                                View Order
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>                    
+                            {% endwith %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="flex justify-center">
+                <div id="empty-state" class="hidden w-3/4 py-12 text-center bg-white dark:bg-gray-800 rounded-lg shadow">
+                    <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No orders found</h3>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Try adjusting your search or filter to find what you're looking for.</p>
+                    <div class="mt-6">
+                        <a href="#" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                            Start Shopping
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Order Details Modal -->
+        <div id="order-modal" class="fixed hidden inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-start justify-center overflow-y-auto py-10">
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl shadow-xl w-full max-w-5xl mx-4 overflow-hidden transition">
+                <!-- Header -->
+                <div class="bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-700 p-5 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-white text-xl font-semibold" id="orderid">Order #ORD-2024-005</h2>
+                        <p class="text-purple-200 text-sm mt-1"><b>Ordered On - </b><span id="modal-order-date"></span></p>
+                    </div>
+                    <button id="close-order-detail" onclick="closeOrderDetails()" class="text-white hover:text-gray-300 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Body -->
+                <div class="p-6 space-y-8">
+                    <!-- Order Status Tracker -->
+                    <div>
+                        <h3 class="text-gray-300 text-base font-medium mb-3">Order Progress</h3>
+                        <div class="relative">
+                            <div class="overflow-hidden h-2 mb-6 rounded bg-gray-700">
+                                <div id="progress-bar" class="bg-indigo-500 h-full transition-all duration-300" style="width: 75%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-400">
+                                <div id="step-1" class="text-center">
+                                    <div class="w-6 h-6 mb-1 rounded-full bg-gray-600 text-white flex items-center justify-center">✓</div>
+                                    <span>Placed</span>
+                                </div>
+                                <div id="step-2" class="text-center">
+                                    <div class="w-6 h-6 mb-1 rounded-full bg-gray-600 text-white flex items-center justify-center">✓</div>
+                                    <span>Processing</span>
+                                </div>
+                                <div id="step-3" class="text-center">
+                                    <div class="w-6 h-6 mb-1 rounded-full bg-gray-600 text-white flex items-center justify-center">✓</div>
+                                    <span>Shipped</span>
+                                </div>
+                                <div id="step-4" class="text-center">
+                                    <div class="w-6 h-6 mb-1 rounded-full bg-gray-600 text-white flex items-center justify-center">✓</div>
+                                    <span>Delivered</span>
+                                </div>
+                            </div>
+                            <p id="delivery-message" class="text-sm text-gray-400 mt-4"></p>
+                        </div>
+                    </div>
+
+                    <!-- Items Ordered -->
+                    <div id="orderItems"></div>
+
+                    <!-- Order Info & Shipping -->
+                    <div class="grid md:grid-cols-2 gap-6 text-sm">
+                        <div>
+                            <h3 class="text-gray-300 text-base font-medium mb-3">Order Information</h3>
+                            <p class="text-gray-400">Date: <span id="modal-order-date" class="text-white">January 01, 1900</span></p>
+                            <p class="text-gray-400">Status: <span id="modal-order-status" class="text-white">-</span></p>
+                            <p class="text-gray-400">Shipment type: <span id="modal-shipment-type" class="text-white">-</span></p>
+                            <p class="text-gray-400">Payment Method: <span id="modal-payment-method" class="text-white">-</span></p>
+                        </div>
+                        <div id="modal-shipping-address">
+                            <!-- Address will be added dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Payment & Summary -->
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-gray-300 text-base font-medium mb-3">Payment</h3>
+                            <div class="bg-gray-800/40 p-4 rounded-lg space-y-1">
+                                <div id="modal-payment-method" class="flex items-center space-x-3"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-gray-300 text-base font-medium mb-3">Summary</h3>
+                            <div class="bg-gray-800/40 p-4 rounded-lg space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-400">Subtotal</span>
+                                    <span id="modal-subtotal" class="text-white">₹00.00</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-400">Shipping</span>
+                                    <span id="modal-shipping-charge" class="text-white">₹00.00</span>
+                                </div>
+                                <div class="border-t border-gray-700 pt-2 flex justify-between font-semibold text-base">
+                                    <span class="text-gray-300">Total</span>
+                                    <span id="modal-total" class="text-white">₹00.00</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="inline-block mt-2 px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-sm border border-green-500/30">Shipped</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                        <button id="download-invoice" class="flex-1 border border-gray-700 hover:border-gray-600 text-gray-300 hover:text-white py-3 rounded-lg font-medium transition" data-orderid="">
+                            Download Invoice
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Order Management System
+            document.addEventListener("DOMContentLoaded", function() {
+                const orderModal = document.getElementById('order-modal');
+                const closeModal = document.getElementById('close-order-detail');
+                const downloadBtn = document.getElementById("download-invoice");
+
+                // Utility Functions
+                function updateAllById(id, text) {
+                    document.querySelectorAll(`#${id}`).forEach(el => {
+                        if (text === "payondelivary") {
+                            el.innerHTML = "Pay On Delivery";
+                        } else if (id === "modal-shipping-address") {
+                            el.innerHTML = `
+                                <h3 class="text-gray-300 text-base font-medium mb-3">
+                                    Shipping Address 
+                                    <span class="bg-opacity-20 bg-indigo-600 text-indigo-300 border border-indigo-400/30 text-xs font-medium px-2.5 py-0.5 rounded-full uppercase tracking-wide">
+                                        ${text.addressType.charAt(0).toUpperCase() + text.addressType.slice(1)}
+                                    </span>
+                                </h3>
+                                <div class="ml-4 text-gray-400">
+                                    <div class="details mb-4">
+                                        <span class="mr-4"><b>${text.name}</b></span>
+                                        <span>${text.contact}</span>
+                                    </div>
+                                    <div class="details">
+                                        <span>${text.address.replace(/,/g, ',<br>')}</span>
+                                    </div>
+                                    <div class="details newline">
+                                        <span>Pincode:</span> ${text.pincode}
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            el.textContent = text;
+                        }
+                    });
+                }
+
+                function formatINR(amount) {
+                    return new Intl.NumberFormat('en-IN', {
+                        style: 'currency',
+                        currency: 'INR'
+                    }).format(amount);
+                }
+
+                function setInvoiceOrderId(orderId) {
+                    const btn = document.getElementById("download-invoice");
+                    if (btn) btn.setAttribute("data-orderid", orderId);
+                }
+
+                // Initialize product display (hide products after first 2)
+                function initializeProductDisplay() {
+                    document.querySelectorAll('.products-container').forEach(container => {
+                        const products = container.querySelectorAll('.product');
+                        products.forEach((product, index) => {
+                            if (index >= 2) {
+                                product.style.display = 'none';
+                            }
+                        });
+                    });
+                }
+
+                // Count orders summary
+                function countOrdersSummary() {
+                    const statusSpans = document.querySelectorAll(".status");
+                    let total = 0;
+                    let completed = 0;
+                    let inProgress = 0;
+
+                    statusSpans.forEach(span => {
+                        const status = span.textContent.trim().toLowerCase();
+                        total++;
+                        if (status === "delivered") {
+                            completed++;
+                        } else {
+                            inProgress++;
+                        }
+                    });
+
+                    const totalOrdersEl = document.getElementById("total-orders");
+                    const completedOrdersEl = document.getElementById("completed-orders");
+                    const inProgressOrdersEl = document.getElementById("inprogress-orders");
+
+                    if (totalOrdersEl) totalOrdersEl.textContent = total;
+                    if (completedOrdersEl) completedOrdersEl.textContent = completed;
+                    if (inProgressOrdersEl) inProgressOrdersEl.textContent = inProgress;
+                }
+
+                // Update order progress
+                function updateOrderProgress(status) {
+                    status = status.toLowerCase();
+                    const progressBar = document.getElementById('progress-bar');
+
+                    const statusMap = {
+                        placed: 0,
+                        processing: 1,
+                        shipped: 2,
+                        delivered: 3,
+                        cancelled: -1
+                    };
+
+                    const index = statusMap[status] ?? -1;
+                    const widths = ['25%', '50%', '75%', '100%'];
+                    
+                    if (progressBar) {
+                        progressBar.style.width = index >= 0 ? widths[index] : '0%';
+                    }
+
+                    // Update delivery message
+                    const message = document.getElementById('delivery-message');
+                    if (!message) return;
+
+                    switch(status) {
+                        case 'placed':
+                            message.textContent = "Your order has been placed and is awaiting processing.";
+                            break;
+                        case 'processing':
+                            message.textContent = "Your order is being prepared.";
+                            break;
+                        case 'shipped':
+                            message.innerHTML = 'Your order is on its way. Expected delivery by <span class="text-white font-medium">June 28, 2025</span>.';
+                            break;
+                        case 'delivered':
+                            message.innerHTML = '<span class="text-white font-medium">Your order has been delivered.</span>';
+                            break;
+                        case 'cancelled':
+                            message.textContent = "This order was cancelled.";
+                            break;
+                        default:
+                            message.textContent = "";
+                            break;
+                    }
+                }
+
+                // Open order details modal
+                function openOrderDetails(event) {
+                    const button = event.currentTarget;
+                    const orderId = button.dataset.orderid;
+                    setInvoiceOrderId(orderId);
+                    
+                    const orderDate = button.dataset.orderdate;
+                    const status = button.dataset.status;
+                    const payment = button.dataset.payment;
+                    const shipment = button.dataset.shipment;
+                    const address = JSON.parse(button.dataset.address.replace(/'/g, '"'));
+                    const total = button.dataset.total;
+                    const shipment_charge = shipment.toLowerCase() === "express" ? 100 : 40;
+                    const subtotal = total - shipment_charge;
+
+                    // Fill modal header
+                    const modalHeader = document.querySelector("#order-modal h2");
+                    if (modalHeader) {
+                        modalHeader.textContent = `Order #${orderId}`;
+                    }
+
+                    // Update modal fields
+                    updateAllById("modal-order-date", `${orderDate}`);
+                    updateAllById("modal-order-status", status);
+                    updateAllById("modal-payment-method", payment);
+                    updateAllById("modal-shipment-type", shipment);
+                    updateAllById("modal-shipping-address", address);
+                    updateAllById("modal-subtotal", `${formatINR(subtotal)}`);
+                    updateAllById("modal-shipping-charge", `${formatINR(shipment_charge)}`);
+                    updateAllById("modal-total", `${formatINR(total)}`);
+
+                    // Update progress bar
+                    updateOrderProgress(status.toLowerCase());
+
+                    // Load and render products
+                    const raw = document.getElementById(`products-${orderId}`);
+                    if (!raw) return;
+
+                    let productMap;
+                    try {
+                        productMap = JSON.parse(raw.textContent);
+                    } catch (e) {
+                        console.error("Failed to parse JSON for order", orderId);
+                        return;
+                    }
+
+                    // Render products
+                    const container = document.getElementById("orderItems");
+                    if (container) {
+                        container.innerHTML = "";
+                        productMap.forEach(product => {
+                            container.innerHTML += `
+                                <div class="flex items-center justify-between border-b border-gray-700 py-3">
+                                    <div class="flex items-center gap-4">
+                                        <img src="${product.image}" alt="${product.name}" class="w-12 h-12 object-cover rounded-md" />
+                                        <div>
+                                            <p class="text-white font-medium">${product.name}</p>
+                                            <p class="text-gray-400 text-sm">Qty: ${product.quantity}</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-white font-semibold text-sm">
+                                        ₹${product.price}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    // Show modal
+                    if (orderModal) {
+                        orderModal.classList.remove("hidden");
+                    }
+                }
+
+                // Close order details modal
+                function closeOrderDetails() {
+                    if (orderModal) {
+                        orderModal.classList.add('hidden');
+                    }
+                }
+
+                // Event listeners
+                if (closeModal) {
+                    closeModal.addEventListener('click', closeOrderDetails);
+                }
+
+                // Modal close on outside click
+                window.addEventListener("click", function(e) {
+                    if (e.target === orderModal) {
+                        orderModal.classList.add("hidden");
+                    }
+                });
+
+                // Expose functions to global scope
+                window.openOrderDetails = openOrderDetails;
+                window.closeOrderDetails = closeOrderDetails;
+
+                // Initialize
+                initializeProductDisplay();
+                countOrdersSummary();
+            });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const downloadBtn = document.getElementById("download-invoice");
+
+        downloadBtn.addEventListener("click", async () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const rupee = "₹"; // Unicode ₹ symbol
+
+            const orderId = downloadBtn.dataset.orderid || "UNKNOWN";
+            const orderDate = document.getElementById("modal-order-date")?.textContent?.trim() || "N/A";
+            const status = document.getElementById("modal-order-status")?.textContent?.trim() || "N/A";
+            const payment = document.getElementById("modal-payment-method")?.textContent?.trim() || "N/A";
+            const shipmentType = document.getElementById("modal-shipment-type")?.textContent?.trim() || "N/A";
+            const totalRaw = Math.floor((document.getElementById("modal-total")?.textContent?.trim().replace(/[^\d]/g, '') || "0") / 100);
+            const address = document.getElementById("modal-shipping-address")?.innerText?.trim() || "N/A";
+            const orderItems = document.querySelectorAll("#orderItems > div");
+
+            // Format like ₹1,23,456
+            const formatINR = (num) => {
+                
+                return  ' ' + Number(num).toLocaleString('en-IN') + "/-";
+            };
+
+            let y = 15;
+            doc.setFontSize(16);
+            doc.text(`Invoice - Order #${orderId}`, 20, y);
+            y += 10;
+
+            doc.setFontSize(12);
+            doc.text(`Date: ${orderDate}`, 20, y); y += 7;
+            doc.text(`Status: ${status}`, 20, y); y += 7;
+            doc.text(`Payment: ${payment}`, 20, y); y += 7;
+
+            doc.text("", 20, y); y += 6;
+            address.split("\n").forEach(line => {
+                doc.text(line.trim(), 25, y);
+                y += 6;
+            });
+
+            y += 5;
+            doc.setFontSize(13);
+            doc.text("Order Items:", 20, y); y += 8;
+
+            // Table headers
+            doc.setFont("bold");
+            doc.text("Product", 20, y);
+            doc.text("Qty", 120, y);
+            doc.text("Price", 170, y, { align: "right" });
+            y += 7;
+            doc.setFont("normal");
+
+            // Table rows
+            orderItems.forEach(item => {
+                const name = item.querySelector("p.text-white")?.textContent?.trim() || "Unknown";
+                const qty = item.querySelector("p.text-gray-400")?.textContent?.replace("Qty: ", "").trim() || "1";
+                const priceRaw = item.querySelector(".text-white.font-semibold")?.textContent?.replace(/[^\d]/g, '').trim() || "0";
+                const price = formatINR(priceRaw);
+
+                doc.text(name, 20, y);
+                doc.text(qty, 120, y);
+                doc.text(price, 170, y, { align: "right" });
+
+                y += 7;
+                if (y > 270) {
+                    doc.addPage();
+                    y = 15;
+                }
+            });
+            y += 5;
+            const shipment_charge = shipmentType.toLowerCase() === "express" ? 100 : 40;
+            doc.text("Shipping", 20, y); // left aligned
+            doc.text(`${shipment_charge}/-`, 170, y, { align: "right" }); // right aligned
+
+            // Total
+            y += 10;
+            const totalFormatted = formatINR(totalRaw);
+            console.log(totalFormatted)
+            doc.setFont("bold");
+            y += 7; // or 8 if you want more space
+            doc.text(`Total: ${totalFormatted}`, 170, y, { align: "right" });            doc.save(`invoice_${orderId}.pdf`);
+        });
+    });
+
+    function setInvoiceOrderId(orderId) {
+        const btn = document.getElementById("download-invoice");
+        if (btn) btn.setAttribute("data-orderid", orderId);
+    }
+</script>
+
+    {% endblock content %}

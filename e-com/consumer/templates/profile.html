@@ -1,0 +1,419 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    {{ user.name }}
+{% endblock %}
+
+{% block content %}
+    <main class="pt-14 pb-16 px-4">
+        <div class="max-w-5xl mx-auto w-full">
+            <!-- Profile Header -->
+            <div class="bg-gray-800 rounded-lg p-6 mb-6 shadow-md">
+                <div class="flex flex-col md:flex-row items-center gap-8">
+                    <div class="relative">
+                        {% if user.image %}
+                            <div class="w-32 h-32 rounded-full object-cover border-4 border-gray-700">
+                                <img src="{{ user.image.url  }}" 
+                                    alt="Profile picture"
+                                    class="w-full h-full">
+                            </div>
+                        {% else %}
+                            <div class="w-32 h-32 rounded-full object-cover border-4 border-gray-700">
+                                <img src="../../media/default/profile/male_1.png" 
+                                    alt="Profile picture"
+                                    class="w-full h-full">
+                            </div>
+                        {% endif %}
+                        <div class="relative">
+                            <!-- File Upload Button -->
+                            <button class="absolute bottom-0 right-0 bg-gray-700 p-2 rounded-full hover:bg-gray-600 focus:outline-none" aria-label="Upload profile image">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                            </button>
+                            <!-- Hidden File Input -->
+                            <input type="file" id="fileInput" name="image" form="ProfileForm" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleFileChange(event)">
+                        </div>
+                    </div>
+                    <div class="text-center md:text-left flex-1">
+                        <h1 class="text-3xl font-semibold">{{ user.name }}</h1>
+                        <p class="text-gray-400">Senior Seller</p>
+                    </div>
+                    <div class="flex flex-col gap-3">
+
+                        <!-- Address and Logout side by side -->
+                        <div class="w-full flex justify-between items-center">
+                            <!-- Address Button -->
+                            {% comment %} <a href="../profile/address">
+                                <button id="openModalBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-lg text-md font-semibold transition duration-300 transform hover:scale-105 ease-in-out shadow-md flex items-center justify-center gap-2">
+                                    <span class="material-icons">home</span>
+                                </button>
+                            </a>
+                            <span class="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 text-sm text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                Logout
+                            </span> {% endcomment %}
+
+                            <!-- Logout Button with hover label -->
+                            <div class="relative group inline-block">
+                                <a href="../profile/address">
+                                    <button id="openModalBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-lg text-md font-semibold transition duration-300 transform hover:scale-105 ease-in-out shadow-md flex items-center justify-center gap-2">
+                                        <span class="material-icons">home</span>
+                                    </button>
+                                </a>
+                                <span class="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 text-sm text-white opacity-0 group-hover:opacity-100 transition-opacity bg-gray-700 px-3 py-2 rounded-md shadow-md">
+                                    Addresses
+                                </span>
+                            </div>
+                            <div class="relative group inline-block">
+                                <a href="/logout">
+                                    <button class="flex items-center justify-center bg-gray-700 hover:bg-gray-600 px-4 py-3 rounded-lg">
+                                        <span class="material-symbols-outlined text-white">
+                                            logout
+                                        </span>
+                                    </button>
+                                </a>
+                                <span class="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 text-sm text-white opacity-0 group-hover:opacity-100 transition-opacity bg-gray-700 px-3 py-2 rounded-md shadow-md">
+                                    Logout
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Delete Button (on top) -->
+                        <button id="deleteAccountBtn" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-lg font-semibold text-white">
+                            Delete account
+                        </button>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Profile Form -->
+            <form method="post" id="ProfileForm" enctype="multipart/form-data" class="bg-gray-800 rounded-lg p-6 shadow-md">
+                {% csrf_token %}
+                <input type="file" id="profileImage" hidden>
+                <h2 class="text-2xl font-semibold mb-6 text-center">Personal Information</h2>
+                <div class="grid gap-4 max-w-2xl mx-auto">
+                    {% if message2 %}
+                        <p id="message2" class="text-red-500 font-semibold text-center mt-4">
+                            {{ message2 }}
+                        </p>
+                    {% endif %}
+                    {% if user %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Display Name</label>
+                        <input type="text" name="name" value="{{ user.name }}" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white py-2 px-4">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Email</label>
+                        <input type="email" name="email" value="{{ user.email }}" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white py-2 px-4">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Phone</label>
+                        <input type="tel" name="contact" value="{{ user.contact }}" maxlength="10" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white py-2 px-4">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Password</label>
+                        <input type="password" name="password" value="{{ user.password }}" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white py-2 px-4" placeholder="••••••••">
+                    </div>
+                    <div class="w-full mt-8 flex">
+                        <button type="submit" name="Profile" value="" form="ProfileForm" class="ml-auto text-center bg-indigo-600 w-40 hover:bg-indigo-700 px-4 py-2 rounded-lg text-white font-semibold">
+                            Save
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <!-- Modal -->
+        <form id="deleteAccountForm" method="post" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+            {% csrf_token %}
+            <div class="bg-gray-900 rounded-lg p-6 w-full max-w-md shadow-lg">
+                <h2 class="text-2xl font-semibold text-center text-white mb-4">Confirm Account Deletion</h2>
+                <p class="text-center text-gray-300 mb-4">This will permanently delete your account. Are you sure?</p>
+                {% if message %}
+                <p class="text-center text-red-500 font-semibold mb-4">{{ message }}</p>
+                {% endif %}
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Password</label>
+                        <input name="password" type="password" placeholder="Password" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white py-2 px-4" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Confirm Password</label>
+                        <input name="confirmPassword" type="password" placeholder="Confirm password" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white py-2 px-4" required>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button id="cancelBtn" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg text-white font-semibold">Cancel</button>
+                    <button type="submit" name="deleteAccount" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-white font-semibold">Confirm Delete</button>
+                </div>
+            </div>
+        </form>
+        {% if message %}
+        <script>
+            document.getElementById('deleteAccountForm').classList.remove('hidden')
+        </script>
+        {% else %}
+        <script>
+            // Get references to the popup and buttons
+            document.addEventListener('DOMContentLoaded', () => {
+                const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+                const deleteAccountForm = document.getElementById('deleteAccountForm');
+                const cancelBtn = document.getElementById('cancelBtn');
+                
+                // Prevent form submission when clicking "Delete Account" button
+                deleteAccountBtn.addEventListener('click', (e) => {
+                    e.preventDefault(); // Prevent form submission
+                    deleteAccountForm.classList.remove('hidden'); // Show the confirmation modal
+                });
+
+                // Hide the popup when the "Cancel" button is clicked
+                cancelBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    deleteAccountForm.classList.add('hidden'); // Hide the confirmation modal
+                });
+
+                // Hide the popup if the user clicks outside of it
+                window.addEventListener('click', (e) => {
+                    if (e.target === deleteAccountForm) {
+                        deleteAccountForm.classList.add('hidden');
+                    }
+                });
+            });
+
+
+            // FOR FILE UPLOAD
+
+            const fileButton = document.querySelector('button[aria-label="Upload profile image"]');
+            const fileInput = document.getElementById('fileInput');
+            
+            // When the button is clicked, trigger the file input
+            fileButton.addEventListener('click', function () {
+                fileInput.click();
+            });
+
+            // Handle file change event for the profile image
+            function handleFileChange(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.querySelector('img').src = e.target.result;  // Update profile image preview
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+            
+            // Attach the handleFileChange to the input
+            fileInput.addEventListener('change', handleFileChange);
+            {% comment %} document.getElementById("ProfileForm").addEventListener('submit', function (e) {
+                // Clone the file input
+                const imageElement = fileInput.cloneNode()
+                // Append the cloned input to the form
+                form.appendChild(imageElement);
+            }); {% endcomment %}
+
+            {% comment %} document.getElementById("fileInput").onchange = function () {
+                form = document.getElementById("ProfileForm")
+                imageElement = fileInput.cloneNode()
+                form.append(imageElement)
+                //imageElement.readOnly = true
+                console.log(form)
+            }; {% endcomment %}
+            
+        </script>
+        {% endif %}
+    </main>
+{% endblock %}
+
+{% block footer %}{% endblock footer %}
+
+
+{% comment %} <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+</head>
+<body class="dark bg-gray-900 text-gray-100 p-2 flex items-center justify-center min-h-screen">
+    <div class="max-w-4xl mx-auto w-full">
+        <div class="absolute top-4 left-5">
+            <h1 class="text-3xl font-bold">
+                <a href="../">
+                    MV-M
+                </a>
+            </h1>
+        </div>
+        <!-- Profile Header -->
+        <div class="bg-gray-800 rounded-lg p-6 mb-2">
+            <div class="flex flex-col md:flex-row items-center gap-8">
+                <div class="relative">
+                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" 
+                        alt="Profile picture" 
+                        class="w-32 h-32 rounded-full object-cover">
+                    <div class="relative">
+                        <!-- File Upload Button -->
+                        <button class="absolute bottom-0 right-0 bg-gray-700 p-2 rounded-full hover:bg-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </button>
+                    
+                        <!-- Hidden File Input -->
+                        <input type="file" id="fileInput" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleFileChange(event)">
+                    </div>
+                </div>
+                <div class="text-center md:text-left space-y-2">
+                    <h1 class="text-3xl font-semibold">{{ user.name }}</h1>
+                    <p class="text-gray-400">Senior Seller</p>
+                </div>
+                <div class="ml-auto grid gap-4">
+                    <button type="submit" name="Profile" form="ProfileForm" class="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg text-lg font-semibold">
+                        Edit 
+                    </button>
+                    <!-- Logout Button -->
+                    <a href="../logout">
+                        <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-lg font-semibold">
+                            Logout
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Details (Centered Information Section) -->
+        <form method="post" id="ProfileForm" class="flex justify-center items-center bg-gray-800 rounded-lg">
+            {% csrf_token %}
+            <div class="p-6 w-1/2 max-w-xl">
+                <h2 class="text-2xl font-semibold mb-6 text-center">Personal Information</h2>
+                <div class="space-y-4">
+                    {% if user %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Display Name</label>
+                        <input type="text" name="name" value="{{ user.name }}" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white py-2 px-4">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Email</label>
+                        <input type="email" name="email" value="{{ user.email }}" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white py-2 px-4">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Phone</label>
+                        <input type="tel" name="contact" value="{{ user.contact }}" maxlength="10" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white py-2 px-4">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Password</label>
+                        <input type="password" name="password" value="{{ user.password }}" placeholder="••••••••" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white py-2 px-4">
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="w-full mt-8 flex justify-center">
+                    <button id="deleteAccountBtn" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-lg font-semibold">
+                        Delete account
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Popup Modal (Hidden by default) -->
+    
+    <form id="deleteAccountForm" method="post" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden">
+        {% csrf_token %}
+        <div class="bg-gray-900 rounded-lg p-6 w-1/3">
+            <h2 class="text-2xl font-semibold mb-4 text-center text-gray-100">Are you sure?</h2>
+            <p class="text-center text-gray-300 mb-4">This action will permanently delete your account. Are you sure you want to continue?</p>
+            <div class="p-6 w-full max-w-xl mb-6">
+                <div class="space-y-4">
+                    {% if message %}
+                        <p class="text-xl font-semibold mb-4 text-center text-red-500">{{ message }}</p>
+                    {% endif %}
+                    <div>
+                        <label for="password" class="block text-md font-semibold mb-1">Password</label>
+                        <input id="password" name="password" type="password" placeholder="Password" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white py-2 px-4" required>
+                    </div>
+                    <div>
+                        <label for="confirmPassword" class="block text-md font-semibold mb-1">Confirm Password</label>
+                        <input id="confirmPassword" name="confirmPassword" type="password" placeholder="Confirm password" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white py-2 px-4" required>
+                    </div>
+                    <div class="flex justify-between">
+                        <button id="cancelBtn" class="mt-6 bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg text-lg font-semibold text-gray-100">
+                            Cancel
+                        </button>
+                        <button type="submit" name="deleteAccount" class="mt-6 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-lg font-semibold text-white">
+                            Confirm Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    
+    
+    {% if message %}
+    <script>
+        document.getElementById('deleteAccountForm').classList.remove('hidden')
+    </script>
+    {% else %}
+    <script>
+        // Get references to the popup and buttons
+        document.addEventListener('DOMContentLoaded', () => {
+            const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+            const deleteAccountForm = document.getElementById('deleteAccountForm');
+            const cancelBtn = document.getElementById('cancelBtn');
+            
+            // Prevent form submission when clicking "Delete Account" button
+            deleteAccountBtn.addEventListener('click', (e) => {
+                e.preventDefault(); // Prevent form submission
+                deleteAccountForm.classList.remove('hidden'); // Show the confirmation modal
+            });
+
+            // Hide the popup when the "Cancel" button is clicked
+            cancelBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                deleteAccountForm.classList.add('hidden'); // Hide the confirmation modal
+            });
+
+            // Hide the popup if the user clicks outside of it
+            window.addEventListener('click', (e) => {
+                if (e.target === deleteAccountForm) {
+                    deleteAccountForm.classList.add('hidden');
+                }
+            });
+        });
+
+
+        // FOR FILE UPLOAD
+
+        const fileButton = document.querySelector('button');
+        const fileInput = document.getElementById('fileInput');
+
+        // When the button is clicked, trigger the file input
+        fileButton.addEventListener('click', function () {
+            fileInput.click();
+        });
+
+        // Handle file change event
+        function handleFileChange(event) {
+            const file = event.target.files[0];
+            if (file) {
+                console.log("File selected:", file.name);
+            }
+        }
+
+    </script>
+    {% endif %}
+
+</body>
+</html> {% endcomment %}

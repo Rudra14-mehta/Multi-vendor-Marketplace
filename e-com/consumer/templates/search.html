@@ -1,0 +1,155 @@
+{% extends 'layout.html' %}
+{% block title %} Search Results {% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-900 text-gray-100 py-8">
+    <div class="container mx-auto px-4">
+        <h2 class="text-4xl font-extrabold mb-8 text-center text-white">
+            Search Results for "<span class="text-blue-400">{{ query }}</span>"
+        </h2>
+
+        <div class="max-w-5xl mx-auto">
+            <div class="flex justify-start mb-6">
+                <div class="relative inline-block text-left">
+                    <select id="sort-by" class="block appearance-none w-full bg-gray-800 border border-gray-700 text-white py-2 px-4 pr-8 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out">
+                        <option value="default">Sort By</option>
+                        <option value="price-asc">Price: Low to High</option>
+                        <option value="price-desc">Price: High to Low</option>
+                        <option value="name-asc">Name: A-Z</option>
+                        <option value="name-desc">Name: Z-A</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                            <path d="M9.293 12.95l.707.707L15 9.707l-1.414-1.414L10 11.586 6.414 8.001 5 9.415z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            {% if results %}
+                <div id="product-grid" class="gap-6">
+                    {% for product in results %}
+                        {% if product.name and product.pk %}
+                            <div class="bg-gray-800 rounded-xl mb-5 p-4 shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out border border-gray-700 flex items-center">
+                                {% if product.image %}
+                                <a href="{% url 'product_detail' product.name|slugify product.pk %}">
+                                    <img src="{{product.image.url}}" alt="{{ product.name }}" 
+                                        class="w-24 h-24 md:w-32 md:h-32 object-cover rounded-lg mr-4 flex-shrink-0 hover:opacity-90 hover:scale-105 transition-transform duration-300">
+                                </a>
+                                {% else %}
+                                        <img src="{{product.image}}" alt="{{ product.name }}" 
+                                            class="w-24 h-24 md:w-32 md:h-32 object-cover rounded-lg mr-4 flex-shrink-0 hover:opacity-90 hover:scale-105 transition-transform duration-300">
+                                    </a>
+
+                                {% endif %}
+                                <div class="flex-grow">
+                                    <a href="{% url 'product_detail' product.name|slugify product.pk %}">
+                                        <h3 class="text-xl font-bold text-white mb-1 hover:underline">{{ product.name }}</h3>
+                                    </a>
+                                    <p class="text-sm text-gray-400 mb-2 product-description">{{ product.description }}</p>
+                                    <p class="text-blue-400 text-2xl font-extrabold">₹{{ product.price }}</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-400 text-center text-lg mt-10">No products found for "{{ query }}".</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Inject serialized product data -->
+<script type="application/json" id="initial-product-data">
+    {{ results_json|safe }}
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const productDataElement = document.getElementById('initial-product-data');
+        const productGrid = document.getElementById('product-grid');
+        const sortBySelect = document.getElementById('sort-by');
+        const url = document.querySelector("")
+
+        let products = [];
+        if (productDataElement && productDataElement.textContent) {
+            try {
+                products = JSON.parse(productDataElement.textContent);
+            } catch (e) {
+                console.error("Error parsing product data:", e);
+            }
+        }
+
+        function truncateWords(text, numWords) {
+            if (!text) return '';
+            const words = text.split(' ');
+            return words.length <= numWords ? text : words.slice(0, numWords).join(' ') + '...';
+        }
+
+        function renderProducts(productsToRender) {
+            if (!productGrid) return;
+            productGrid.innerHTML = '';
+
+            if (productsToRender.length === 0) {
+                productGrid.innerHTML = '<p class="text-gray-400 text-center text-lg col-span-full mt-10">No products found.</p>';
+                return;
+            }
+
+            productsToRender.forEach(product => {
+                // Ensure slug and id are present
+                const productUrl = `/product/${product.slug}/${product.id}/`;
+
+                const productCard = document.createElement('div');
+                productCard.className = 'bg-gray-800 mb-4 rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out border border-gray-700 flex items-center';
+
+                productCard.innerHTML = `
+                    <a href="${productUrl}">
+                        <img src="{{product.image.url}}" alt="${product.name}" 
+                            class="w-24 h-24 md:w-32 md:h-32 object-cover rounded-lg mr-4 flex-shrink-0 hover:opacity-90 hover:scale-105 transition-transform duration-300">
+                    </a>
+                    <div class="flex-grow">
+                        <a href="${productUrl}">
+                            <h3 class="text-xl font-bold text-white mb-1 hover:underline">${product.name}</h3>
+                        </a>
+                        <p class="text-sm text-gray-400 mb-2 product-description">${truncateWords(product.description, 15)}</p>
+                        <p class="text-blue-400 text-2xl font-extrabold">₹${product.price}</p>
+                    </div>
+                `;
+                productGrid.appendChild(productCard);
+            });
+        }
+
+        if (products.length > 0) {
+            renderProducts(products);
+        }
+
+        if (sortBySelect) {
+            sortBySelect.addEventListener('change', function() {
+                const sortOption = this.value;
+                let sortedProducts = [...products];
+
+                switch (sortOption) {
+                    case 'price-asc':
+                        sortedProducts.sort((a, b) => a.price - b.price);
+                        break;
+                    case 'price-desc':
+                        sortedProducts.sort((a, b) => b.price - a.price);
+                        break;
+                    case 'name-asc':
+                        sortedProducts.sort((a, b) => a.name.localeCompare(b.name));
+                        break;
+                    case 'name-desc':
+                        sortedProducts.sort((a, b) => b.name.localeCompare(a.name));
+                        break;
+                    default:
+                        sortedProducts = [...products];
+                        break;
+                }
+
+                renderProducts(sortedProducts);
+            });
+        }
+    });
+</script>
+{% endblock %}

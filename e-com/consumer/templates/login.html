@@ -1,0 +1,182 @@
+{% extends "layout.html" %}
+
+<!-- Title -->
+{% block title %}Login{% endblock title %}
+
+<!-- Seller Account Redirect Button -->
+{% block additionalButton %}
+<a href="seller/login">
+    <button class="bg-blue-600 text-white px-4 py-1 rounded-md hover:bg-blue-700 transition duration-300">Become a Seller</button>
+</a> 
+{% endblock additionalButton %}
+
+<!-- Main Content -->
+{% block content %}
+    <!-- Main Content -->
+    <div class="p-20 flex items-center justify-center">
+        <div class="bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-lg p-8 rounded-xl shadow-2xl w-full max-w-md">
+            <h2 class="text-3xl font-bold mb-6 text-center text-gray-100">Login to EcomStore</h2>
+            <p class="text-center text-gray-300 mb-8">Welcome back! Please enter your details.</p>
+            <form id="loginForm" method="post" class="space-y-6">
+                {% csrf_token %}
+
+                {% if message %}
+                    <p id="message" name="message" class="font-bold text-red-400">{{ message }}</p>
+                {% endif %}
+                <div class="space-y-2">
+                    <label for="usernameOrEmail" class="block text-sm font-medium text-gray-300">Username or Email</label>
+                    <input type="text" id="email" name="email" required
+                        class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none text-gray-100 placeholder-gray-400 transition duration-300">
+                </div>
+                <div class="space-y-2">
+                    <label for="password" class="block text-sm font-medium text-gray-300">Password</label>
+                    <div class="relative">
+                        <input type="password" id="password" name="password" required
+                            class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none text-gray-100 placeholder-gray-400 transition duration-300">
+                        <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5">
+                            <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <button type="submit"
+                        class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300 transform hover:scale-105">
+                        Login
+                    </button>
+                </div>
+            </form>
+            <p class="mt-8 text-center text-sm text-gray-400">
+                Don't have an account?
+                <a href="../register" class="font-medium text-blue-400 hover:text-blue-300 transition duration-300">
+                    Create an account
+                </a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('password');
+            const togglePassword = document.getElementById('togglePassword');
+
+            // ---Shows Password---
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.querySelector('svg').classList.toggle('text-blue-400');
+            });
+
+            /* FORM ACTION */
+            /*document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                // Handle form submission logic here
+                console.log('Form submitted:', {
+                    usernameOrEmail: document.getElementById('usernameOrEmail').value,
+                    password: passwordInput.value
+                });
+            });*/
+        });
+
+        
+        // Hide Login Button 
+        document.getElementById("LoginButton").classList.add("hidden");
+        document.getElementById("slash").classList.add("hidden");
+
+    </script>
+{% endblock content %}
+
+{% comment %} <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - EcomStore</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex flex-col bg-gray-900 from-gray-900 via-gray-800 to-gray-700">
+    <!-- Header Section -->
+    <header class="bg-gray-800 p-4 shadow-lg">
+        <div class="max-w-screen-xl mx-auto flex justify-between items-center text-white">
+            <h1 class="text-xl font-bold">EcomStore</h1>
+            <div class="space-x-2">
+                <button class="bg-blue-600 text-white px-4 py-1 rounded-md hover:bg-blue-700 transition duration-300">User</button>
+                <a href="seller/login">
+                    <button class="bg-blue-600 text-white px-4 py-1 rounded-md hover:bg-blue-700 transition duration-300">Seller</button>
+                </a>            
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="p-20 flex items-center justify-center">
+        <div class="bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-lg p-8 rounded-xl shadow-2xl w-full max-w-md">
+            <h2 class="text-3xl font-bold mb-6 text-center text-gray-100">Login to EcomStore</h2>
+            <p class="text-center text-gray-300 mb-8">Welcome back! Please enter your details.</p>
+            <form id="loginForm" method="post" class="space-y-6">
+                {% csrf_token %}
+
+                {% if message %}
+                    <p id="message" name="message" class="font-bold text-red-400">{{ message }}</p>
+                {% endif %}
+                <div class="space-y-2">
+                    <label for="usernameOrEmail" class="block text-sm font-medium text-gray-300">Username or Email</label>
+                    <input type="text" id="email" name="email" required
+                        class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none text-gray-100 placeholder-gray-400 transition duration-300">
+                </div>
+                <div class="space-y-2">
+                    <label for="password" class="block text-sm font-medium text-gray-300">Password</label>
+                    <div class="relative">
+                        <input type="password" id="password" name="password" required
+                            class="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none text-gray-100 placeholder-gray-400 transition duration-300">
+                        <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5">
+                            <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <button type="submit"
+                        class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300 transform hover:scale-105">
+                        Login
+                    </button>
+                </div>
+            </form>
+            <p class="mt-8 text-center text-sm text-gray-400">
+                Don't have an account?
+                <a href="../register" class="font-medium text-blue-400 hover:text-blue-300 transition duration-300">
+                    Create an account
+                </a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('password');
+            const togglePassword = document.getElementById('togglePassword');
+
+            // ---Shows Password---
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.querySelector('svg').classList.toggle('text-blue-400');
+            });
+
+            /* FORM ACTION */
+            /*document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                // Handle form submission logic here
+                console.log('Form submitted:', {
+                    usernameOrEmail: document.getElementById('usernameOrEmail').value,
+                    password: passwordInput.value
+                });
+            });*/
+        });
+    </script>
+</body>
+</html> {% endcomment %}

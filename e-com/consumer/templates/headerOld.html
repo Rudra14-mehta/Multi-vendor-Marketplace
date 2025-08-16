@@ -1,0 +1,42 @@
+<header class="sticky top-0 z-50 bg-gray-800 shadow-lg  ">
+    <nav class="container mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <h1 class="text-2xl font-bold">
+                    <a href="../">
+                        MV-M
+                    </a>
+                </h1>
+                <div class="hidden md:flex space-x-4">
+                    <a href="#" class="hover:text-blue-400 transition">Home</a>
+                    <a href="#" class="hover:text-blue-400 transition">Shop</a>
+                    <a href="#" class="hover:text-blue-400 transition">Categories</a>
+                    <a href="#" class="hover:text-blue-400 transition">Deals</a>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <input type="search" placeholder="Search products..." 
+                        class="bg-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <a href="cart">
+                    <button class="relative" id="cartButton">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <span id="cartCount" class="absolute -top-2 -right-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">0</span>
+                    </button>
+                </a>
+                {% if name %}
+                <div class="relative">
+                    <a href="profile" class="text-sm">{{ name }}</a>
+                </div>
+                {% else %}
+                <div class="relative">
+                    <a href="login" class="text-sm">Login</a> / <a href="register" class="text-sm">Sign up</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+</header>

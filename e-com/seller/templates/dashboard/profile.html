@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Settings</title>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.2/dist/alpine.js" defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+</head>
+<body class="dark bg-gray-900 text-gray-100 min-h-screen p-4 md:p-6">
+    {% if seller %}
+    <div class="max-w-4xl mx-auto">
+        <!-- <div class="absolute top-4 left-5">
+            <h1 class="text-3xl font-bold">
+                <a href="../seller">
+                    MV-M
+                </a>
+            </h1>
+        </div> -->
+        <!-- Header -->
+        <div class="bg-gray-800 rounded-lg p-6 mb-8">
+            <div class="flex flex-col md:flex-row items-center gap-8">
+                <div class="relative">
+                    {% if seller.image %}
+                        <div class="w-32 h-32 rounded-full object-cover border-4 border-gray-700">
+                            <img src="{{ seller.image.url }}" 
+                                alt="Profile picture" 
+                                class="w-32 h-32 pb-2 rounded-full object-cover">
+                        </div>
+                    {% else %}
+                        <div class="w-32 h-32 rounded-full object-cover border-4 border-gray-700">
+                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" 
+                                alt="Profile picture" 
+                                class="w-32 h-32 rounded-full object-cover">
+                        </div>
+                    {% endif %}
+                    <div class="relative">
+                        <!-- File Upload Button -->
+                        <button class="absolute bottom-0 right-0 bg-gray-700 p-2 rounded-full hover:bg-gray-600 focus:outline-none" aria-label="Upload profile image">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </button>
+                        <!-- Hidden File Input -->
+                        <input type="file" id="fileInput" name="image" form="profileForm" class="absolute inset-0 opacity-0 cursor-pointer" onclick="handleFileChange(event)">
+                    </div>
+                </div>
+                <div class="text-center md:text-left space-y-2">
+                    <h1 class="text-3xl font-semibold">{{ seller.name }}</h1>
+                    <!-- <p class="text-gray-400">Senior Seller</p> -->
+                    <div class="mt-2 flex flex-wrap justify-center md:justify-start gap-2">
+                        <!-- <span class="px-4 py-2 bg-gray-700 rounded-full text-sm font-semibold">Verified Seller</span> -->
+                        <!-- <span class="px-4 py-2 bg-gray-700 rounded-full text-sm font-semibold">Premium Member</span> -->
+                    </div>
+                </div>
+                <div class="ml-auto ">
+                    <button class=" w-full grid mb-2 ml-auto bg-indigo-600 hover:bg-indigo-700 px-6 py-3 rounded-lg text-lg font-semibold">
+                        Edit Profile
+                    </button>
+                    <button id="deleteAccountBtn" class="w-full grid mb-2 ml-auto bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg text-lg font-semibold">
+                        Delete account
+                    </button>
+                </div>
+                <!-- <div class="w-full mt-8 flex justify-center">
+                </div> -->
+            </div>
+        </div>
+        <!-- Form -->
+        <form id="profileForm" method="post" enctype="multipart/form-data" class="space-y-8">
+            {% csrf_token %}
+            <!-- Personal Information -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Personal Information</h2>
+                <!-- {% if error %}
+                <p name="error" id="error" class="text-xl font-semibold mb-4 text-center text-red-500">
+                    {{ error }} 
+                </p>
+                {% endif %} -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-400 mb-1">Full Name</label>
+                        <input type="text" id="name" name="name" value="{{ seller.name }}" required
+                            class="w-full px-4 py-2 rounded-md bg-gray-700 border-gray-600 text-white focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-400 mb-1">Email Address</label>
+                        <input type="email" id="email" name="email" value="{{ seller.email }}" required
+                            class="w-full px-4 py-2 rounded-md bg-gray-700 border-gray-600 text-white focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <!-- Phone Number -->
+                    <div class="w-full max-w-md">
+                        <label for="contact" class="block text-sm font-medium text-gray-400 mb-1">
+                            Phone Number
+                        </label>
+                        <div class="flex items-center w-full">
+                            <!-- Custom Dropdown -->
+                            <div class="relative inline-block w-[140px]" x-data="{ open: false, selectedCode: '{{ seller_dialCode.dialCode }}', selectedFlag: '{{ seller_dialCode.image }}', searchQuery: '' }">
+                                <!-- Custom Dropdown Button -->
+                                <button type="button" @click="open = !open" class="flex gap-2 items-center h-[42px] w-full rounded-es-lg rounded-ss-lg border-r-2 border-gray-500 bg-gray-700 text-gray-200 px-3 hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" aria-haspopup="listbox" aria-expanded="false">
+                                    <img :src="selectedFlag" class="w-4 h-4 rounded-full" />
+                                    <span x-text="selectedCode" class="flex-1 text-left"></span>
+                                    <svg class="h-4 w-4 text-dark-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                
+                                <!-- Dropdown List -->
+                                <ul x-show="open" @click.away="open = false" class="absolute z-150 left-0 w-[350px] mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-xl py-1 max-h-60 overflow-auto" role="listbox">
+                                    <!-- Search Input -->
+                                    <li class="px-3 py-2">
+                                        <input type="text" x-model="searchQuery" class="w-full rounded-lg bg-gray-700 text-gray-200 px-3 py-1" placeholder="Search countries..." />
+                                    </li>
+                                
+                                    <!-- Filtered Country List -->
+                                    {% for i in countryCodes %}
+                                    <li x-show="searchQuery === '' || '{{ i.country }}'.toLowerCase().includes(searchQuery.toLowerCase()) || '{{ i.dialCode }}'.includes(searchQuery)" :class="{'hidden': searchQuery && !('{{ i.country }}'.toLowerCase().includes(searchQuery.toLowerCase()) || '{{ i.dialCode }}'.includes(searchQuery))}" class="cursor-pointer">
+                                        <button type="button" @click="selectedCode = '{{ i.dialCode }}'; selectedFlag  = '{{ i.image }}'; open = false" class="flex gap-3 items-center w-full px-3 py-2 text-gray-200 hover:bg-dark-700 transition-colors" role="option">
+                                            <img src="{{ i.image }}" class="h-4 w-4 rounded-full"/>
+                                            <span>{{ i.country }} ({{ i.dialCode }})</span>
+                                        </button>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                <input type="hidden" name="dialCode" x-bind:value="selectedCode">
+                            </div>
+                            
+                            <!-- Phone Number Input with matching height -->
+                            <input type="tel" id="contact" name="contact" required maxlength="11" oninput="formatPhoneNumber(event)" 
+                                class="w-full h-[42px] px-4 py-2 rounded-se-lg rounded-ee-lg bg-gray-700 border-gray-600 text-white focus:ring-2 focus:ring-indigo-500" 
+                                placeholder="12345 67890" value="{{ seller.contact }}" autocomplete="on"/>
+                            
+                        </div>
+                        <p id="phoneError" class="text-red-400 text-sm hidden"></p>
+                    </div>
+                    
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-400 mb-1">Password</label>
+                        <input type="password" id="password" name="password"
+                            class="w-full px-4 py-2 rounded-md bg-gray-700 border-gray-600 text-white focus:ring-2 focus:ring-indigo-500">
+                        <p class="mt-1 text-sm text-gray-400">Leave blank to keep current password</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Address Information -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Address Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2">
+                        <label for="address" class="block text-sm font-medium text-gray-400 mb-1">Street Address</label>
+                        <input type="text" id="address" name="address" value="{{ seller.address }}" required
+                            class="w-full px-4 py-2 rounded-md bg-gray-700 border-gray-600 text-white focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="city" class="block text-sm font-medium text-gray-400 mb-1">City</label>
+                        <input type="text" id="city" name="city" value="{{ seller.city }}" required
+                            class="w-full px-4 py-2 rounded-md bg-gray-700 border-gray-600 text-white focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="district" class="block text-sm font-medium text-gray-400 mb-1">District</label>
+                        <!-- USING READONLY INSTEAD OF DISABLE BECAUSE POST DOESN'T TAKE VALUE FROM DISABLED FIELD -->
+                        <input type="text" id="district" name="district" value="{{ seller.district }}" required readonly
+                            class="w-full px-4 py-2 rounded-md bg-gray-700 border-gray-600 text-white focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="state" class="block text-sm font-medium text-gray-400 mb-1">State</label>
+                        <input type="text" id="state" name="state" value="{{ seller.state }}" required readonly
+                            class="w-full px-4 py-2 rounded-md bg-gray-700 border-gray-600 text-white focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="pincode" class="block text-sm font-medium text-gray-400 mb-1">Pincode</label>
+                        <input type="text" id="pincode" name="pincode" value="{{ seller.pincode }}" required pattern="[0-9]{6}"
+                            class="w-full px-4 py-2 rounded-md bg-gray-700 border-gray-600 text-white focus:ring-2 focus:ring-indigo-500">
+                            <p id="message"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Business Information -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Business Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="companyName" class="block text-sm font-medium text-gray-400 mb-1">Company Name</label>
+                        <input type="text" id="companyName" name="companyName" value="{{ seller.companyName }}" required
+                            class="w-full px-4 py-2 rounded-md bg-gray-700 border-gray-600 text-white focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="storeName" class="block text-sm font-medium text-gray-400 mb-1">Store Name</label>
+                        <input type="text" id="storeName" name="storeName" value="{{ seller.storeName }}" required
+                            class="w-full px-4 py-2 rounded-md bg-gray-700 border-gray-600 text-white focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="gstin" class="block text-sm font-medium text-gray-400 mb-1">GSTIN</label>
+                        <input type="text" id="gstin" name="gstin" required value="{{ seller.gstin }}" pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$"
+                            class="w-full px-4 py-2 rounded-md bg-gray-700 border-gray-600 text-white focus:ring-2 focus:ring-indigo-500">
+                        <p class="mt-1 text-sm text-gray-400">Format: 22AAAAA0000A1Z5</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex justify-end gap-4">
+                <a href="profile">
+                    <button type="button" 
+                    class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md focus:ring-2 focus:ring-gray-500">
+                    Reset
+                    </button>
+                </a>
+                <button type="submit" name="Profile"
+                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-md focus:ring-2 focus:ring-indigo-500">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+        
+        <!-- Delete Account Page Form -->
+        <section>
+
+            <form id="deleteAccountForm" method="post" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden">
+                {% csrf_token %}
+                <div class="bg-gray-900 rounded-lg p-6 w-1/3">
+                    <h2 class="text-2xl font-semibold mb-4 text-center text-gray-100">Are you sure?</h2>
+                    <p class="text-center text-gray-300 mb-4">This action will permanently delete your account. Are you sure you want to continue?</p>
+                    <div class="p-6 w-full max-w-xl mb-6">
+                        <div class="space-y-4">
+                            {% if message %}
+                                <p class="text-xl font-semibold mb-4 text-center text-red-500">{{ message }}</p>
+                            {% endif %}
+                            <div>
+                                <label for="password" class="block text-md font-semibold mb-1">Password</label>
+                                <input id="password" name="password" type="password" placeholder="Password" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white py-2 px-4" required>
+                            </div>
+                            <div>
+                                <label for="confirmPassword" class="block text-md font-semibold mb-1">Confirm Password</label>
+                                <input id="confirmPassword" name="confirmPassword" type="password" placeholder="Confirm password" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white py-2 px-4" required>
+                            </div>
+                            <div class="flex justify-between">
+                                <!-- <button type="button" id="cancelBtn" class="mt-6 bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg text-lg font-semibold text-gray-100">
+                                    Cancel
+                                </button> -->
+                                <button type="submit" name="deleteAccount" class="mt-6 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-lg font-semibold text-white">
+                                    Confirm Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+    
+            {% if message %}
+            <script>
+                document.getElementById('deleteAccountForm').classList.remove('hidden')
+            </script>
+            {% else %}
+            <script>
+                // Get references to the popup and buttons
+                document.addEventListener('DOMContentLoaded', () => {
+                    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+                    const deleteAccountForm = document.getElementById('deleteAccountForm');
+                    const cancelBtn = document.getElementById('cancelBtn');
+                    
+                    // Prevent form submission when clicking "Delete Account" button
+                    deleteAccountBtn.addEventListener('click', (e) => {
+                        e.preventDefault(); // Prevent form submission
+                        deleteAccountForm.classList.remove('hidden'); // Show the confirmation modal
+                    });
+    
+                    // Hide the popup when the "Cancel" button is clicked
+                    cancelBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        deleteAccountForm.classList.add('hidden'); // Hide the confirmation modal
+                    });
+    
+                    // Hide the popup if the user clicks outside of it
+                    window.addEventListener('click', (e) => {
+                        if (e.target === deleteAccountForm) {
+                            deleteAccountForm.classList.add('hidden');
+                        }
+                    });
+                });
+    
+    
+    
+            </script>
+            {% endif %}
+        </section>
+
+        
+
+        <!-- Success/Error Message -->
+        {% if error %}
+        <div class="fixed w-3/4 top-8 left-0 right-0 z-50 mx-auto">
+            <div class="bg-red-100 border-2 border-red-500 text-red-700 px-4 py-3 rounded-md dark:bg-red-500 dark:border-red-300 dark:text-red-200" role="alert">
+                <strong class="font-bold">Error!</strong>
+                <span class="block sm:inline">{{ error }}.</span>
+                <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" onclick="this.parentElement.style.display='none'">
+                    <svg class="fill-current h-6 w-6 text-red-500 dark:text-red-300" role="button" xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20">
+                        <title>Close</title>
+                        <path d="M14.348 5.652a1 1 0 00-1.414 0L10 8.586 7.066 5.652A1 1 0 105.652 7.066L8.586 10l-2.934 2.934a1 1 0 101.414 1.414L10 11.414l2.934 2.934a1 1 0 001.414-1.414L11.414 10l2.934-2.934a1 1 0 000-1.414z"/>
+                    </svg>
+                </span>
+            </div>
+        </div>                    
+        {% endif %}
+    </div>
+
+    <script>
+        const fileButton = document.querySelector('button[aria-label="Upload profile image"]');
+        const fileInput = document.getElementById('fileInput');
+
+        // When the button is clicked, trigger the file input
+        fileButton.addEventListener('click', function () {
+            fileInput.click();
+        });
+
+        // Handle file change event for the profile image
+        function handleFileChange(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.querySelector('img').src = e.target.result;  // Update profile image preview
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        fileInput.addEventListener('change', handleFileChange);
+    </script>
+    <script>
+        document.getElementById('profileForm').addEventListener('submit', function (e) {
+            // Let the form submit as usual (POST request)
+            console.log("Hereosdjsdsll")
+            setTimeout(function () {
+                
+                // Wait for submission and page to reload (if applicable),
+                // then reload the parent window
+                if (window.parent) {
+                    window.parent.location.reload(); // Reloads the main page
+                }
+            }); // Slight delay to let Django redirect or respond
+        });
+    </script>
+    <script>
+
+        function updateLocationData(pincode) {
+            const messageElement = document.getElementById('message');
+            const cityField = document.getElementById('city');
+            const districtField = document.getElementById('district');
+            const stateField = document.getElementById('state');
+            
+            
+            // Regular expression to validate pincode (6 digits)
+            const pincodeRegex = /^[0-9]{6}$/;
+            
+            // If pincode is invalid, return early
+            if (!pincode.match(pincodeRegex)) {
+                messageElement.textContent = 'Please enter a valid 6-digit pincode.';
+                messageElement.className = 'error';
+                return;
+            }
+            // If pincode is valid remove message
+            if(pincode.match(pincodeRegex)){
+                messageElement.textContent = "";
+            }
+            
+            // Show loading message while waiting for API response
+            // messageElement.textContent = 'Fetching data...';
+            // messageElement.className = 'loading';
+            
+            // Fetch data from the API
+            fetch(`https://api.postalpincode.in/pincode/${pincode}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data[0].Status === 'Success' && data[0].PostOffice && data[0].PostOffice.length > 0) {
+                    const postInfo = data[0].PostOffice[0];
+                    const city = postInfo.Name;
+                    const district = postInfo.District;
+                    const state = postInfo.State;
+
+                        // Update the input fields with city, district, and state
+                        cityField.value = city;
+                        console.log(district);
+                        districtField.value = district;
+                        stateField.value = state;
+                        
+                        // Display success message
+                        // messageElement.textContent = 'Pincode is valid!';
+                        // messageElement.className = 'success';
+                    } else {
+                        console.log("Data not found");
+                        messageElement.textContent = 'Pincode not found or invalid.';
+                        messageElement.className = 'error';
+                    }
+                })
+                .catch(error => {
+                    messageElement.textContent = 'Error fetching data from the API.';
+                    messageElement.className = 'error';
+                    console.error('Error fetching pincode data:', error);
+                });
+            }
+            document.getElementById('pincode').addEventListener('input', function() {
+                const pincode = this.value.trim();
+                updateLocationData(pincode);
+            });
+            
+            
+            // FORMAT PHONE NUMBER
+            function formatPhoneNumber(event) {
+                const input = event.target;
+                let value = input.value.replace(/\D/g, ''); // Remove all non-digit characters
+                
+            // Format as 123-456-7890
+            if (value.length > 5) {
+                value = value.replace(/(\d{5})(\d{1,5})/, '$1 $2');
+            }
+            // if (value.length > 3 && value.length <= 6) {
+                //     value = value.replace(/(\d{3})(\d{1,3})/, '$1 $2');
+                // } else if (value.length > 6) {
+                    //     value = value.replace(/(\d{3})(\d{3})(\d{1,4})/, '$1 $2 $3');
+                    // }
+                    
+                    input.value = value; // Set formatted value back to the input
+                }
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    const dropdowns = document.querySelectorAll('[x-data]');
+                    dropdowns.forEach(dropdown => {
+                        if (!dropdown.contains(e.target)) {
+                            dropdown.__x.$data.open = false;
+                        }
+                    });
+                });
+                
+                // Handle keyboard navigation
+                document.addEventListener('keydown', (e) => {
+                    const dropdown = document.querySelector('[x-data]');
+                    if (!dropdown.__x.$data.open) return;
+                    
+            if (e.key === 'Escape') {
+                dropdown.__x.$data.open = false;
+            }
+        });
+    </script>
+    
+    <script>
+
+        // Form handling
+        // const form = document.getElementById('profileForm');
+        // const messageBox = document.getElementById('messageBox');
+        // const messageIcon = document.getElementById('messageIcon');
+        // const messageText = document.getElementById('messageText');
+        
+        // // Sample initial data - in real application, this would come from your backend
+        // const initialData = {
+        //     name: 'John Doe',
+        //     email: 'john@example.com',
+        //     contact: '9876543210',
+        //     address: '123 Main Street',
+        //     city: 'Mumbai',
+        //     district: 'Mumbai',
+        //     state: 'Maharashtra',
+        //     pincode: '400001',
+        //     companyName: 'Tech Solutions',
+        //     gstin: '27AAAAA0000A1Z5',
+        //     storeName: 'Tech Store'
+        // };
+
+        // // Populate form with initial data
+        // function populateForm() {
+        //     Object.keys(initialData).forEach(key => {
+        //         const input = document.getElementById(key);
+        //         if (input && key !== 'password') {
+        //             input.value = initialData[key];
+        //         }
+        //     });
+        // }
+        
+        // // Reset form to initial data
+        // function resetForm() {
+        //     populateForm();
+        //     showMessage('Form reset to initial values', 'info');
+        // }
+        
+        // // Show message function
+        // function showMessage(text, type) {
+        //     messageText.textContent = text;
+        //     messageBox.className = `fixed bottom-4 right-4 max-w-md rounded-lg p-4 flex items-center gap-3 ${
+        //         type === 'success' ? 'bg-green-900 text-green-300' :
+        //         type === 'error' ? 'bg-red-900 text-red-300' :
+        //         'bg-blue-900 text-blue-300'
+        //     }`;
+
+        //     // Set icon based on message type
+        //     messageIcon.innerHTML = type === 'success' 
+        //     ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>' 
+        //     : type === 'error' 
+        //     ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>' 
+        //     : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>';
+
+        //     messageBox.classList.remove('hidden');
+            
+        //     // Hide message after 3 seconds
+        //     setTimeout(() => {
+        //         messageBox.classList.add('hidden');
+        //     }, 3000);
+        // }
+        
+        // // Form submission
+        // form.addEventListener('submit', (e) => {
+        //     e.preventDefault();
+            
+        //     // Basic validation
+        //     const gstin = document.getElementById('gstin').value;
+        //     const gstinPattern = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+        //     const pincode = document.getElementById('pincode').value;
+        //     const pincodePattern = /^[0-9]{6}$/;
+
+        //     if (!gstinPattern.test(gstin)) {
+        //         showMessage('Please enter a valid GSTIN', 'error');
+        //         return;
+        //     }
+
+        //     if (!pincodePattern.test(pincode)) {
+        //         showMessage('Please enter a valid 6-digit pincode', 'error');
+        //         return;
+        //     }
+
+        //     // In a real application, you would send this data to your backend
+        //     const formData = new FormData(form);
+        //     const data = Object.fromEntries(formData.entries());
+        //     console.log('Form data:', data);
+            
+        //     // Show success message
+        //     showMessage('Profile updated successfully', 'success');
+        // });
+
+        // // Initialize form
+        // populateForm();
+    </script>
+
+
+
+    {% else %}
+    <div class="flex justify-center items-center h-screen">
+        <h1 class="text-center">Something went wrong! Please login again</h1>
+    </div>
+    {% endif %}
+</body>
+</html>

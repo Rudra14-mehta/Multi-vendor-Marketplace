@@ -1,0 +1,228 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Register - Multivendor Marketplace</title>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#020617',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="//unpkg.com/alpinejs" defer></script>
+
+    <script>
+        // Password Toggle Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const togglePasswordButton = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('password');
+
+            togglePasswordButton.addEventListener('click', function() {
+                // Toggle the password visibility
+                const type = passwordInput.type === 'password' ? 'text' : 'password';
+                passwordInput.type = type;
+
+                // Toggle the icon based on password visibility
+                const icon = togglePasswordButton.querySelector('svg');
+                if (type === 'password') {
+                    // Set icon to eye off (hidden)
+                    icon.setAttribute('d', 'M15 12a3 3 0 11-6 0 3 3 0 016 0z');
+                } else {
+                    // Set icon to eye on (visible)
+                    icon.setAttribute('d', 'M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z');
+                }
+            });
+        });
+
+        // Phone number formatting and validation
+        function formatPhoneNumber(event) {
+            const input = event.target;
+            let value = input.value.replace(/\D/g, ''); // Remove all non-digit characters
+
+            // Format as 123-456-7890
+            if (value.length > 5) {
+                value = value.replace(/(\d{5})(\d{1,5})/, '$1 $2');
+            }
+            // if (value.length > 3 && value.length <= 6) {
+            //     value = value.replace(/(\d{3})(\d{1,3})/, '$1 $2');
+            // } else if (value.length > 6) {
+            //     value = value.replace(/(\d{3})(\d{3})(\d{1,4})/, '$1 $2 $3');
+            // }
+
+            input.value = value; // Set formatted value back to the input
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const dropdowns = document.querySelectorAll('[x-data]');
+            dropdowns.forEach(dropdown => {
+                if (!dropdown.contains(e.target)) {
+                    dropdown.__x.$data.open = false;
+                }
+            });
+        });
+
+        // Handle keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            const dropdown = document.querySelector('[x-data]');
+            if (!dropdown.__x.$data.open) return;
+
+            if (e.key === 'Escape') {
+                dropdown.__x.$data.open = false;
+            }
+        });
+    </script>
+</head>
+<body class="bg-gray-900 min-h-screen flex flex-col items-center justify-start">
+    {% if user %}
+    <input id="user" name="user" type="hidden" value="{{ user }}">
+    {% endif %}
+    <!-- Header with Two Buttons -->
+    <header class="w-full bg-gray-800 p-4 shadow-lg">
+        <div class="max-w-screen-xl mx-auto flex justify-between items-center text-white">
+            <h1 class="text-xl font-bold">EcomStore</h1>
+            <div class="space-x-2">
+                <a href="../login">
+                    <button class="bg-blue-600 text-white px-4 py-1 rounded-md hover:bg-blue-700 transition duration-300">User</button>
+                </a>            
+                <button class="bg-blue-600 text-white px-4 py-1 rounded-md hover:bg-blue-700 transition duration-300">Seller</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Registration Form -->
+    <div class="w-full max-w-md bg-gray-800 rounded-xl shadow-xl p-8 space-y-6 mt-6">
+        <!-- Title -->
+        <div class="text-center space-y-2">
+            <h1 class="text-2xl font-bold text-white">Become a seller at MV-M</h1>
+        </div>
+        {% if message %}
+        <p id="message" name="message" ></p>
+        {% endif %}
+
+        <!-- Registration Form -->
+        <form id="registerForm" class="space-y-5" method="post">
+            {% csrf_token %}
+            <!-- name -->
+            <div class="space-y-2">
+                <label for="name" class="block text-sm font-medium text-gray-200">
+                    Name
+                </label>
+                <input
+                    type="text"
+                    id="name"
+                    name = "name"
+                    required
+                    class="w-full rounded-lg border border-gray-600 bg-gray-700 text-gray-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+                    placeholder="Enter your name" autocomplete="on"
+                />
+                <p id="nameError" class="text-red-400 text-sm hidden"></p>
+            </div>
+
+            <!-- Email -->
+            <div class="space-y-2">
+                <label for="email" class="block text-sm font-medium text-gray-200">
+                    Email
+                </label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    class="w-full rounded-lg border border-gray-600 bg-gray-700 text-gray-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+                    placeholder="Enter your email" autocomplete="on"
+                />
+                <p id="emailError" class="text-red-400 text-sm hidden"></p>
+            </div>
+
+            <!-- Phone Number -->
+            <div class="w-full max-w-md space-y-2">
+                <label for="contact" class="block text-sm font-medium text-gray-200">
+                    Phone Number
+                </label>
+                <div class="flex items-center">
+                    <!-- Custom Dropdown -->
+                    <div class="relative inline-block" x-data="{ open: false, selectedCode: '{{ first.dialCode }}', selectedFlag: '{{ first.image }}', searchQuery: '' }">
+                        <button  type="button"  @click="open = !open" class="flex gap-2 items-center h-[42px] w-[120px] rounded-es-lg rounded-ss-lg border border-dark-600 bg-gray-700 text-gray-200 px-3 hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" aria-haspopup="listbox" aria-expanded="false">
+                            <img :src="selectedFlag" class="w-5 h-4 rounded-lg" />
+                            <span x-text="selectedCode" class="flex-1 text-left"></span>
+                            <svg class="h-4 w-4 text-dark-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        
+                        <ul x-show="open" @click.away="open = false" class="absolute z-50 left-0 w-[350px] mt-1 bg-dark-800 border border-dark-600 rounded-lg shadow-xl py-1 max-h-60 overflow-auto" role="listbox" style="display: none;">
+                            <!-- Search Input -->
+                            <li class="px-3 py-2">
+                                <input type="text" x-model="searchQuery" class="w-full rounded-lg bg-dark-700 text-gray-200 px-3 py-1" placeholder="Search countries..." />
+                            </li>
+                    
+                            <!-- Filtered Country List -->
+                            {% for i in countryCodes %}
+                            <li x-show="searchQuery === '' || '{{ i.country }}'.toLowerCase().includes(searchQuery.toLowerCase()) || '{{ i.dialCode }}'.includes(searchQuery)" :class="{'hidden': searchQuery && !('{{ i.country }}'.toLowerCase().includes(searchQuery.toLowerCase()) || '{{ i.dialCode }}'.includes(searchQuery))}" class="cursor-pointer">
+                                <button type="button" @click="selectedCode = '{{ i.dialCode }}'; selectedFlag    = '{{ i.image }}'; open = false" class="flex gap-3 items-center w-full px-3 py-2 text-gray-200 hover:bg-dark-700 transition-colors" role="option">
+                                    <img src="{{ i.image }}" class="h-5 w-5 rounded-3xl"/>
+                                    <span>{{ i.country }} ({{ i.dialCode }})</span>
+                                </button>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        <input type="hidden" name="dialCode" x-bind:value="selectedCode">
+                    </div>
+                    <input type="tel" id="contact" name="contact" required maxlength="11" oninput="formatPhoneNumber(event)" class="flex-1 h-[42px] rounded-se-lg rounded-ee-lg border border-dark-600 bg-dark-700 text-gray-200 px-4 placeholder-dark-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors hover:bg-dark-700" placeholder="12345 67890" autocomplete="on"/>
+                </div>
+                <p id="phoneError" class="text-red-400 text-sm hidden"></p>
+            </div>
+        
+            <!-- Password -->
+            <div class="space-y-2">
+                <label for="password" class="block text-sm font-medium text-gray-200">
+                    Password
+                </label>
+                <div class="relative">
+                    <input type="password" id="password" name="password" required class="w-full rounded-lg border border-gray-600 bg-gray-700 text-gray-200 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400" placeholder="Enter your password"/>
+                    <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 flex items-center px-4 text-gray-400 hover:text-gray-300" >
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </button>
+                </div>
+                <p id="passwordError" class="text-red-400 text-sm hidden"></p>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="w-full bg-blue-600 text-white rounded-lg px-4 py-2.5 font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                Create Account
+            </button>
+
+            <!-- Login Link -->
+            <p class="text-center text-gray-400">
+                Already have an account?
+                <a href="login" class="text-blue-400 hover:text-blue-300">Login here</a>
+            </p>
+        </form>
+    </div>
+</body>
+</html>

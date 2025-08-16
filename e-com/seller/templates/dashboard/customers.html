@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+</head>
+<body class="dark bg-gray-900 text-gray-100 p-6">
+
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold">Customers</h1>
+        <p class="text-gray-400">View and manage your customer base</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <input type="text" placeholder="Search customers..." class="rounded-lg bg-gray-800 border-gray-700 text-white p-3 focus:outline-none focus:ring-2 focus:ring-indigo-600">
+        <select class="rounded-lg bg-gray-800 border-gray-700 text-white p-3 focus:outline-none focus:ring-2 focus:ring-indigo-600">
+            <option value="">All Segments</option>
+            <option value="new">New Customers</option>
+            <option value="regular">Regular Customers</option>
+            <option value="vip">VIP Customers</option>
+        </select>
+        <select class="rounded-lg bg-gray-800 border-gray-700 text-white p-3 focus:outline-none focus:ring-2 focus:ring-indigo-600">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="most_orders">Most Orders</option>
+            <option value="highest_spent">Highest Spent</option>
+        </select>
+    </div>
+
+    <!-- Customers Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="customersGrid">
+        <!-- Customers will be dynamically inserted here -->
+    </div>
+
+    <!-- Customer Details Modal -->
+    <div id="customerDetailsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-lg p-6 max-w-2xl w-full" id="customerModalContent">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-semibold">Customer Details</h2>
+                <button onclick="hideCustomerDetails()" class="text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="customerDetailsContent">
+                <!-- Customer details will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample customers data
+        const customers = [
+            {
+                id: 1,
+                name: "John Doe",
+                email: "john@example.com",
+                avatar: "/placeholder.svg?height=100&width=100",
+                joinDate: "2023-12-01",
+                totalOrders: 15,
+                totalSpent: 1299.99,
+                segment: "regular",
+                lastOrder: "2024-01-05",
+                location: "New York, USA"
+            },
+            // Add more customers as needed
+        ];
+
+        // Render customers
+        function renderCustomers() {
+            const grid = document.getElementById('customersGrid');
+            grid.innerHTML = customers.map(customer => `
+                <div class="bg-gray-800 rounded-lg p-6 shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                    <div class="flex items-center mb-4">
+                        <img src="${customer.avatar}" alt="${customer.name}" class="bg-gray-900 w-16 h-16 rounded-full mr-6">
+                        <div>
+                            <h3 class="font-semibold text-lg">${customer.name}</h3>
+                            <p class="text-sm text-gray-400">${customer.email}</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2 mb-4">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Total Orders</span>
+                            <span class="text-white">${customer.totalOrders}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Total Spent</span>
+                            <span class="text-white">$${customer.totalSpent}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Last Order</span>
+                            <span class="text-white">${customer.lastOrder}</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="px-2 py-1 text-sm rounded-full ${
+                            customer.segment === 'vip' ? 'bg-purple-900 text-purple-300' :
+                            customer.segment === 'regular' ? 'bg-blue-900 text-blue-300' :
+                            'bg-green-900 text-green-300'
+                        }">${customer.segment.charAt(0).toUpperCase() + customer.segment.slice(1)}</span>
+                        <button onclick="showCustomerDetails(${customer.id})" class="text-indigo-400 hover:text-indigo-300">View Details</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Show customer details
+        function showCustomerDetails(customerId) {
+            const customer = customers.find(c => c.id === customerId);
+            if (!customer) return;
+
+            const content = document.getElementById('customerDetailsContent');
+            content.innerHTML = `
+                <div class="space-y-6">
+                    <div class="flex items-center mb-6">
+                        <img src="${customer.avatar}" alt="${customer.name}" class="pt-9 w-24 h-24 bg-gray-900 rounded-full mr-8">
+                        <div>
+                            <h3 class="text-xl font-semibold">${customer.name}</h3>
+                            <p class="text-gray-400">${customer.email}</p>
+                            <p class="text-sm text-gray-400 mt-1">Member since ${customer.joinDate}</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-400 mb-2">Customer Information</h4>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Location</span>
+                                    <span class="text-white">${customer.location}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Segment</span>
+                                    <span class="px-2 py-1 text-sm rounded-full ${
+                                        customer.segment === 'vip' ? 'bg-purple-900 text-purple-300' :
+                                        customer.segment === 'regular' ? 'bg-blue-900 text-blue-300' :
+                                        'bg-green-900 text-green-300'
+                                    }">${customer.segment.charAt(0).toUpperCase() + customer.segment.slice(1)}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-400 mb-2">Order Summary</h4>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Total Orders</span>
+                                    <span class="text-white">${customer.totalOrders}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Total Spent</span>
+                                    <span class="text-white">$${customer.totalSpent}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Last Order</span>
+                                    <span class="text-white">${customer.lastOrder}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-2 pt-6 border-t border-gray-700">
+                        <button class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg">View Orders</button>
+                        <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg">Contact Customer</button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('customerDetailsModal').classList.remove('hidden');
+        }
+
+        // Hide customer details
+        function hideCustomerDetails() {
+            document.getElementById('customerDetailsModal').classList.add('hidden');
+        }
+
+        // Close modal when clicking outside the modal content
+        document.getElementById('customerDetailsModal').addEventListener('click', function(event) {
+            const modalContent = document.getElementById('customerModalContent');
+            if (!modalContent.contains(event.target)) {
+                hideCustomerDetails();
+            }
+        });
+
+        // Initial render
+        renderCustomers();
+    </script>
+
+</body>
+</html>

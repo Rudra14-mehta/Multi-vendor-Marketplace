@@ -1,0 +1,582 @@
+{% extends "layout.html" %}
+{% load custom_tags %}
+
+{% block title %}Addresses{% endblock title %}
+
+{% block content %}
+    <div class="max-w-4xl mx-auto p-6 bg-gray-900 rounded-xl">
+        <div class="mt-12">
+            <h3 class="text-2xl font-semibold mb-6">Your Addresses</h3>
+            <div class="space-y-6">
+                {% if user.address %}
+                    {% comment %} {% for addresses in user.address %}
+                        {% with address=addresses|make_obj %}
+                            <div class="bg-gray-800 p-6 rounded-xl flex justify-between items-center shadow-lg hover:shadow-2xl transition duration-300">
+                                <div class="text-sm text-gray-300">
+                                    <span class="text-xs text-gray-300 bg-gray-700 px-2 py-0.5 rounded-lg inline-block uppercase tracking-wide">{{ address.addressType }}</span>
+                                    <div class="mt-2 ml-1">
+                                        <p class="mb-2" style="word-spacing: 2.5rem;">
+                                            <strong>
+                                                {{ address.name }}
+
+                                                {{ address.contact }}
+                                            </strong>
+                                        </p>
+                                       <p>{{address.address}}</p>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-4">
+                                    <button class="text-indigo-600 hover:text-indigo-700">Edit</button>
+                                    <button class="text-red-600 hover:text-red-700">Delete</button>
+                                </div>
+                            </div>
+                        {% endwith %}
+                    {% endfor %} {% endcomment %}
+                    {% for address in user.address %}
+                            {% comment %} <div class="bg-gray-900 hover:bg-gray-800 border-l-4 border-indigo-500 rounded-md shadow-md hover:shadow-lg transition duration-300 pl-5 pr-4 py-4 flex justify-between items-center" style="background-color: rgb(30 38 55);"> {% endcomment %}
+
+                            <div class="bg-gray-900 hover:bg-gray-800 border-l-4 border-indigo-500 rounded-md shadow-md hover:shadow-lg transition duration-300 pl-5 pr-4 py-4 flex justify-between items-center" style="background-color: rgb(24 30 44);">
+                                <div>
+                                    <span class="bg-opacity-20 bg-indigo-600 text-indigo-300 text-xs font-medium px-2.5 py-0.5 rounded-full uppercase tracking-wide">{{ address.addressType }}</span>
+                                    {{address.id}}
+                                    <div class="mt-3">
+                                        <div class="font-semibold text-gray-100 text-lg">{{ address.name }}</div>
+                                        <div class="flex items-center gap-2 mt-1 text-gray-300">
+                                            <span>{{ address.contact }}</span>
+                                        </div>
+                                        <hr class="border-t-2 border-gray-700 my-2 w-1/2">
+                                        <div class="text-gray-300 mt-2 text-sm">{{ address.address }}</div>
+                                    </div>
+                                </div>
+                                <div class="flex gap-4">
+                                    <button class="edit-btn text-indigo-300 hover:text-indigo-200 hover:bg-indigo-900 hover:bg-opacity-30 px-4 py-2 rounded-md transition duration-200 font-medium"
+                                        data-id="{{ address.id }}" 
+                                        data-name="{{ address.name }}"
+                                        data-mobile="{{ address.contact }}"
+                                        data-address="{{ address.address }}"
+                                        data-locality="{{ address.locality }}"
+                                        data-pincode="{{ address.pincode }}"
+                                        data-city="{{ address.city }}"
+                                        data-state="{{ address.state }}" 
+                                        data-landmark="{{ address.landmark }}"
+                                        data-alternatePhone="{{ address.alternatePhone }}"
+                                        data-type="{{ address.addressType }}">Edit</button>
+                                    <button type="button"
+                                            class="delete-btn text-red-300 hover:text-red-200 hover:bg-red-900 hover:bg-opacity-30 px-4 py-2 rounded-md transition duration-200 font-medium"
+                                            data-id="{{ address.id }}">
+                                        Delete
+                                    </button>                                    
+                                </div>
+                            </div>
+                    {% endfor %}
+
+                {% endif %}
+                <div id="editModal" style="margin-top: 0" class="fixed inset-0 bg-black bg-opacity-70 hidden z-50 justify-center items-center">
+                    <div class="bg-gray-800 p-10 rounded-xl w-full max-w-3xl mx-auto">
+                        <h2 class="text-xl font-semibold text-white mb-4">Edit Address</h2>
+                        <form id="editForm" method="POST" class="space-y-4">
+                            {% csrf_token %}
+                            <input type="hidden" name="id" id="editAddressId"> {# **Added hidden input field** #}
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-200 mb-1">Full Name</label>
+                                    <input name="name" type="text" placeholder="Enter your full name" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-indigo-500 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-200 mb-1">Mobile Number</label>
+                                    <input name="contact" type="tel" placeholder="Enter your 10-digit contact number" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-indigo-500 text-sm">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-200 mb-1">Address</label>
+                                <textarea name="address" rows="2" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="Enter your address"></textarea>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-200 mb-1">Locality</label>
+                                    <input type="text" name="locality" placeholder="Enter locality" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-indigo-500 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-200 mb-1">Pincode</label>
+                                    <input type="text" name="pincode" placeholder="Enter pincode" maxlength="6" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-indigo-500 text-sm">
+                                    <p class="text-sm mt-1 text-red-400 pincode-message"></p> {# Added message element for pincode validation #}
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-200 mb-1">City/District/Town</label>
+                                    <input type="text" name="city" placeholder="Enter city/district/town" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-indigo-500 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-200 mb-1">State</label>
+                                    <input type="text" name="state" placeholder="Enter state" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-indigo-500 text-sm">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-200 mb-1">Landmark (Optional)</label>
+                                    <input type="text" name="landmark" placeholder="Enter landmark" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-indigo-500 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-200 mb-1">Alternate Phone (Optional)</label>
+                                    <input type="tel" name="alternatePhone" placeholder="Enter alternate phone number" maxlength="10" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-indigo-500 text-sm">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-200 mb-2">Address Type</label>
+                                <div class="flex items-center gap-6 text-gray-300">
+                                    <label class="inline-flex items-center"><input type="radio" name="addressType" value="home" class="form-radio text-blue-600 bg-gray-800 border-gray-700 focus:ring-blue-500" checked><span class="ml-2 text-sm text-gray-200">Home</span></label>
+                                    <label class="inline-flex items-center"><input type="radio" name="addressType" value="work" class="form-radio text-blue-600 bg-gray-800 border-gray-700 focus:ring-blue-500"><span class="ml-2 text-sm text-gray-200">Work</span></label>
+                                    <label class="inline-flex items-center"><input type="radio" name="addressType" value="other" class="form-radio text-blue-600 bg-gray-800 border-gray-700 focus:ring-blue-500"><span class="ml-2 text-sm text-gray-200">Other</span></label>
+                                </div>
+                                 <div id="editOtherInput" class="hidden mt-2"> {# Added a unique ID for the other input in the edit modal #}
+                                    <input type="text" id="editOtherAddress" name="otherAddress" class="w-full px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="Address type">
+                                </div>
+                            </div>
+                            <div class="mt-6 flex justify-end gap-4 pt-4 border-t border-gray-800">
+                                <button type="button" id="closeEditModal" class="px-6 py-2 rounded-md text-gray-300 border border-gray-700 hover:text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2 focus:ring-offset-gray-900 transition duration-150 ease-in-out">Cancel</button>
+                                <button type="submit" id="edit" name="edit" class="px-6 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition duration-150 ease-in-out">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex text-center justify-center mt-12 mb-6">
+            <button id="openModalBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-md text-lg font-semibold transition duration-300 transform hover:scale-105 ease-in-out shadow-md flex items-center justify-center gap-2">
+                <span class="material-icons">home</span> Add New Address
+            </button>
+        </div>
+
+        <div id="addressModal" style="margin-top: 0" class="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 hidden">
+            <div class="bg-gray-800 p-10 rounded-xl w-full max-w-3xl mx-auto shadow-lg">
+                <form id="addressForm" method="POST" action="#" class="space-y-4">
+                    {% csrf_token %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="name" class="text-gray-300 text-sm">Full Name</label>
+                            <input type="text" id="name" name="name" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="Enter your full name" required>
+                        </div>
+                        <div>
+                            <label for="contact" class="text-gray-300 text-sm">Mobile Number</label>
+                            <input type="tel" id="contact" name="contact" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="Enter your 10-digit contact number" maxlength="10" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="address" class="text-gray-300 text-sm">Address (Area and Street)</label>
+                        <textarea id="address" name="address" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="Enter area and street" required rows="3"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="locality" class="text-gray-300 text-sm">Locality</label>
+                            <input type="text" id="locality" name="locality" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="Enter locality" required>
+                        </div>
+                        <div>
+                            <label for="pincode" class="text-gray-300 text-sm">Pincode</label>
+                            <input id="pincode" name="pincode" type="text" required maxlength="6"
+                                class="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-indigo-500 text-sm"
+                                placeholder="Enter pincode">
+                            <p id="message" class="text-sm mt-1 text-red-400"></p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="city" class="text-gray-300 text-sm">City/District/Town</label>
+                            <input type="text" id="city" name="city" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="Enter city/district/town" required>
+                        </div>
+
+                        <div>
+                            <label for="state" class="text-gray-300 text-sm">State</label>
+                            <input id="state" name="state" type="text" required maxlength="6"
+                                class="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-indigo-500 text-sm"
+                                placeholder="Enter state" disabled>
+                            <p id="message" class="text-sm mt-1 text-red-400"></p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="landmark" class="text-gray-300 text-sm">Landmark (Optional)</label>
+                            <input type="text" id="landmark" name="landmark" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="Enter landmark">
+                        </div>
+
+                        <div>
+                            <label for="alternatePhone" class="text-gray-300 text-sm">Alternate Phone (Optional)</label>
+                            <input type="tel" id="alternatePhone" name="alternatePhone" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="Enter alternate phone number" maxlength="10">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center mt-4 space-x-4">
+                        <div class="flex mb-6 items-center">
+                            <input type="radio" id="home" name="addressType" value="home" class="text-indigo-600" checked>
+                            <label for="home" class="text-sm text-gray-300 ml-2">Home</label>
+
+                            <input type="radio" id="work" name="addressType" value="work" class="text-indigo-600 ml-4">
+                            <label for="work" class="text-sm text-gray-300 ml-2">Work</label>
+
+                            <input type="radio" id="other" name="addressType" value="other" class="text-indigo-600 ml-4">
+                            <label for="other" class="text-sm text-gray-300 ml-2">Other</label>
+                        </div>
+
+                        <div id="otherInput" class="hidden ml-6">
+                            <input type="text" id="otherAddress" name="otherAddress" class="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="Address type">
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-center">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md text-sm">Save Address</button>
+                    </div>
+                </form>
+
+                <div class="absolute top-2 right-2">
+                    <button id="closeModalBtn" class="text-white text-3xl">×</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <script>
+        const openModalBtn = document.getElementById("openModalBtn");
+        const closeModalBtn = document.getElementById("closeModalBtn");
+        const modal = document.getElementById("addressModal");
+
+        // Open the modal
+        openModalBtn.addEventListener("click", () => {
+            modal.classList.remove("hidden");
+             modal.classList.add("flex"); // Added flex to ensure it's displayed as a flex container
+        });
+
+        // Close the modal
+        closeModalBtn.addEventListener("click", () => {
+            modal.classList.add("hidden");
+            modal.classList.remove("flex"); // Removed flex when hiding
+        });
+
+        // Optional: Close the modal when clicking outside of it
+        window.addEventListener("click", (e) => {
+            if (e.target === modal) {
+                modal.classList.add("hidden");
+                modal.classList.remove("flex"); // Removed flex when hiding
+            }
+        });
+    </script>
+
+    <script>
+        // Get the radio buttons and the input field
+        const otherRadioButton = document.getElementById('other');
+        const otherInputField = document.getElementById('otherInput');
+         // Get the radio buttons for the edit modal
+        const editOtherRadioButton = document.querySelector('#editModal input[value="other"]');
+        const editOtherInputField = document.getElementById('editOtherInput');
+
+
+        // Add event listener to show input when "Other" is selected for Add Modal
+        otherRadioButton.addEventListener('change', function() {
+            if (this.checked) {
+                otherInputField.classList.remove('hidden');
+                // otherInputField.classList.add('required'); // Consider handling required validation during form submission
+            }
+        });
+
+        // Hide input field when "Home" or "Work" is selected for Add Modal
+        const homeRadioButton = document.getElementById('home');
+        const workRadioButton = document.getElementById('work');
+
+        homeRadioButton.addEventListener('change', function() {
+            if (this.checked) {
+                // otherInputField.classList.remove('required');
+                otherInputField.classList.add('hidden');
+            }
+        });
+
+        workRadioButton.addEventListener('change', function() {
+            if (this.checked) {
+                otherInputField.classList.add('hidden');
+                // otherInputField.classList.remove('required');
+            }
+        });
+
+         // Add event listener to show input when "Other" is selected for Edit Modal
+        editOtherRadioButton.addEventListener('change', function() {
+            if (this.checked) {
+                editOtherInputField.classList.remove('hidden');
+                 // Consider handling required validation during form submission
+            } else {
+                 editOtherInputField.classList.add('hidden');
+            }
+        });
+
+
+        function updateLocationData(pincode, cityField, stateField, messageElement) {
+            // Regular expression to validate pincode (6 digits)
+            const pincodeRegex = /^[0-9]{6}$/;
+
+            // If pincode is invalid, clear fields and show message
+            if (!pincode.match(pincodeRegex)) {
+                messageElement.textContent = 'Please enter a valid 6-digit pincode.';
+                messageElement.className = 'text-sm mt-1 text-red-400'; // Ensure correct class for message
+                 cityField.value = ''; // Clear city field
+                 stateField.value = ''; // Clear state field
+                stateField.disabled = true; // Disable state field
+                return;
+            }
+             // Clear message if pincode is valid format
+            if (pincode.match(pincodeRegex)) {
+                messageElement.textContent = '';
+                 messageElement.className = 'text-sm mt-1 text-red-400'; // Reset class
+            }
+
+            // Show loading message while waiting for API response (Optional)
+            // messageElement.textContent = 'Fetching data...';
+            // messageElement.className = 'loading';
+
+            // Fetch data from the API
+            fetch(`https://api.postalpincode.in/pincode/${pincode}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data[0].Status === 'Success' && data[0].PostOffice && data[0].PostOffice.length > 0) {
+                        const postInfo = data[0].PostOffice[0];
+                        const city = postInfo.District; // Often District is more accurate for city
+                        const state = postInfo.State;
+
+                        // Update the input fields with city, district, and state
+                        cityField.value = city;
+                        stateField.value = state;
+                         stateField.disabled = false; // Enable state field after fetching
+
+
+                        // Display success message (Optional)
+                        // messageElement.textContent = 'Location data fetched.';
+                        // messageElement.className = 'success';
+                    } else {
+                        console.log("Data not found");
+                        messageElement.textContent = 'Pincode not found or invalid.';
+                        messageElement.className = 'text-sm mt-1 text-red-400'; // Ensure correct class for message
+                         cityField.value = ''; // Clear city field
+                         stateField.value = ''; // Clear state field
+                         stateField.disabled = true; // Disable state field
+                    }
+                })
+                .catch(error => {
+                    messageElement.textContent = 'Error fetching data from the API.';
+                    messageElement.className = 'text-sm mt-1 text-red-400'; // Ensure correct class for message
+                     cityField.value = ''; // Clear city field
+                     stateField.value = ''; // Clear state field
+                     stateField.disabled = true; // Disable state field
+                    console.error('Error fetching pincode data:', error);
+                });
+
+        }
+        // Event listener for pincode input in the Add Modal
+        document.getElementById('pincode').addEventListener('input', function() {
+            const pincode = this.value.trim();
+            const cityField = document.getElementById('city');
+            const stateField = document.getElementById('state');
+            const messageElement = document.getElementById('message');
+            updateLocationData(pincode, cityField, stateField, messageElement);
+        });
+
+         // Event listener for pincode input in the Edit Modal
+        document.querySelector('#editForm input[name="pincode"]').addEventListener('input', function() {
+            const pincode = this.value.trim();
+             const form = this.closest('form');
+             const cityField = form.querySelector('input[name="city"]');
+             const stateField = form.querySelector('input[name="state"]');
+             const messageElement = form.querySelector('.pincode-message'); // Use the class here
+
+            updateLocationData(pincode, cityField, stateField, messageElement);
+        });
+
+
+        // Enable state field before form submission (if needed on server side)
+        document.querySelector('#addressForm').addEventListener('submit', function() {
+            document.getElementById('state').disabled = false;
+            console.log("Add Form State Enabled")
+        });
+        document.querySelector('#editForm').addEventListener('submit', function() {
+            document.querySelector('#editForm input[name="state"]').disabled = false;
+            console.log("Edit Form State Enabled")
+        });
+
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const editModal = document.getElementById("editModal");
+            const closeEditModalBtn = document.getElementById("closeEditModal");
+            const editButtons = document.querySelectorAll(".edit-btn");
+            const editForm = document.getElementById("editForm");
+            const editAddressIdInput = document.getElementById("editAddressId"); // Get the hidden input field for ID
+            const editOtherRadioButton = document.querySelector('#editModal input[value="other"]');
+            const editOtherInputField = document.getElementById('editOtherInput');
+
+
+            editButtons.forEach(button => {
+                button.addEventListener("click", () => {
+                    // Get the address ID from the data attribute and set the hidden input value
+                    editAddressIdInput.value = button.getAttribute("data-id") || ''; // **Set the hidden input value**
+
+                    // Fill in the basic text fields
+                    editForm.elements["name"].value = button.getAttribute("data-name");
+                    editForm.elements["contact"].value = button.getAttribute("data-mobile");
+                    editForm.elements["address"].value = button.getAttribute("data-address");
+
+                    // Fill in the extra fields
+                    editForm.elements["locality"].value = button.getAttribute("data-locality") || '';
+                    editForm.elements["pincode"].value = button.getAttribute("data-pincode") || '';
+                    editForm.elements["city"].value = button.getAttribute("data-city") || '';
+                    editForm.elements["state"].value = button.getAttribute("data-state") || ''; // Fill state
+                    editForm.elements["landmark"].value = button.getAttribute("data-landmark") || '';
+                    editForm.elements["alternatePhone"].value = button.getAttribute("data-alternatePhone") || '';
+
+                    // Fill in the address type radio button based on the selected address type
+                    const addressType = button.getAttribute("data-type");
+                    const addressTypeRadios = editForm.elements["addressType"];
+                    for (let radio of addressTypeRadios) {
+                        if (radio.value === addressType) {
+                            radio.checked = true;
+                            break;
+                        }
+                    }
+
+                     // Show/hide the 'Other' input field based on the selected type
+                    if (addressType === 'other') {
+                         editOtherInputField.classList.remove('hidden');
+                         // You might also want to fill the 'otherAddress' input if you store that data
+                         // editForm.elements["otherAddress"].value = button.getAttribute("data-otherAddress") || ''; // Assuming you have this data attribute
+                    } else {
+                         editOtherInputField.classList.add('hidden');
+                         editForm.elements["otherAddress"].value = ''; // Clear if switching away from 'other'
+                    }
+
+
+                    // Show the modal
+                    editModal.classList.remove("hidden");
+                    editModal.classList.add("flex"); // Ensure it's displayed as a flex container
+
+                     // Manually trigger pincode validation if pincode is already filled
+                    if (editForm.elements["pincode"].value) {
+                         const pincodeInput = editForm.elements["pincode"];
+                         // Create a custom event to simulate input
+                         const inputEvent = new Event('input', { bubbles: true });
+                         pincodeInput.dispatchEvent(inputEvent);
+                    } else {
+                         // Clear city and state fields if pincode is empty
+                         editForm.elements["city"].value = '';
+                         editForm.elements["state"].value = '';
+                         editForm.elements["state"].disabled = true; // Disable state field
+                         const messageElement = editForm.querySelector('.pincode-message');
+                         if (messageElement) {
+                             messageElement.textContent = ''; // Clear any previous message
+                         }
+                    }
+                     // Disable state field initially in edit form if empty
+                     if (!editForm.elements["state"].value) {
+                        editForm.elements["state"].disabled = true;
+                     }
+                });
+            });
+
+            closeEditModalBtn.addEventListener("click", () => {
+                editModal.classList.add("hidden");
+                editModal.classList.remove("flex"); // Removed flex when hiding
+            });
+
+            window.addEventListener("click", e => {
+                if (e.target === editModal) {
+                    editModal.classList.add("hidden");
+                    editModal.classList.remove("flex"); // Removed flex when hiding
+                }
+            });
+
+             // Prevent form submission for demonstration (remove this for actual submission)
+            editForm.addEventListener('submit', (event) => {
+                 // event.preventDefault(); // Prevent default form submission
+                 console.log('Edit Form submitted (prevented for demo)');
+
+                 // Get the address ID from the hidden input field
+                 const addressId = editAddressIdInput.value; // **Get the ID from the hidden input**
+                 console.log("Address ID:", addressId); // Log the ID
+
+                 // Get all form data
+                 const formData = new FormData(editForm);
+
+                 // **The id is automatically included in formData because it's an input field with a 'name' attribute.**
+                 // You can verify this by iterating over the formData:
+                 // for (let pair of formData.entries()) {
+                 //    console.log(pair[0]+ ': ' + pair[1]);
+                 // }
+
+
+                 // You would typically send this formData using Fetch API or XMLHttpRequest
+                 // Example using Fetch API (replace with your actual endpoint):
+                 /*
+                 fetch('/your-update-address-endpoint/', {
+                     method: 'POST', // or 'PUT'
+                     body: formData,
+                     // You might need to add headers like CSRF token for security
+                     headers: {
+                         // 'X-CSRFToken': 'your-csrf-token',
+                     },
+                 })
+                 .then(response => response.json()) // or response.text()
+                 .then(data => {
+                     console.log('Success:', data);
+                     // Handle success (e.g., show a success message, update UI)
+                     closeEditModal(); // Close the modal on success
+                 })
+                 .catch((error) => {
+                     console.error('Error:', error);
+                     // Handle errors (e.g., show an error message)
+                 });
+                 */
+
+                 // After successful submission, you would typically close the modal:
+                 // closeEditModal();
+             });
+        });
+
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inject the form into the body
+            document.body.insertAdjacentHTML('beforeend', `
+                <form id="deleteForm" method="POST" style="display: none;">
+                {% csrf_token %}
+                    <input type="hidden" name="delete" id="deleteAddressId">
+                    <input type="hidden" name="action" value="delete">
+                </form>
+            `);
+
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+            const deleteForm = document.getElementById('deleteForm');
+            const deleteInput = document.getElementById('deleteAddressId');
+
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const addressId = button.getAttribute('data-id');
+
+                    if (confirm('Are you sure you want to delete this address?')) {
+                        deleteInput.value = addressId;
+                        deleteForm.submit();
+                    }
+                });
+            });
+        });
+    </script>
+
+
+{% endblock content %}
+
+{% block footer %}{% endblock footer %}

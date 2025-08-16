@@ -1,0 +1,320 @@
+{% extends "layout.html" %}
+{% load custom_tags %}
+
+{% block title %}Cart{% endblock title %}
+
+{% block content %}
+    <main class="container mx-auto pl-12 px-4 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Cart Items -->
+            <div id="cartItems" class="lg:col-span-2">
+                {% if products %}
+                <h1 class="text-3xl font-bold mb-8">Your Cart</h1>
+                    {% for id, quantity in products.items %}
+                    {% comment %}It's a custom tag that returns product object using "id"{% endcomment %}
+                    {% with product=id|get_product_from_id %} 
+                        {% comment %} {% for id, quantity in items.items %} {% endcomment %}
+                        <div class="mb-4 flex flex-col sm:flex-row items-center gap-6 p-6 bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 max-w-[90%]">
+                            <!-- Form per item -->
+                            <form action="" method="post" class="flex flex-col sm:flex-row items-center gap-6 w-full">
+                            {% csrf_token %}
+
+                            <!-- Product Image -->
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}"
+                                    class="w-28 h-28 object-cover rounded-md" />
+                            {% else %}
+                                <img src="{{ product.image }}" alt="{{ product.name }}"
+                                    class="w-28 h-28 object-cover rounded-md" />
+                                
+                            {% endif %}
+
+                            <!-- Product Info -->
+                            <div class="flex-1 w-full space-y-2">
+                                <h3 class="text-xl font-semibold">{{ product.name }}</h3>
+                                <div class="flex items-center gap-3">
+                                <button type="submit" name="decrement"
+                                    class="bg-gray-700 hover:bg-gray-600 text-white w-8 h-8 rounded shadow-inner">−</button>
+                                <span class="w-10 text-center">{{ quantity }}</span>
+                                <button type="submit" name="increment"
+                                    class="bg-gray-700 hover:bg-gray-600 text-white w-8 h-8 rounded shadow-inner">+</button>
+                                </div>
+                            </div>
+
+                            <!-- Price and Remove -->
+                            <div class="flex flex-col items-end gap-2">
+                                <span class="price text-lg font-semibold text-white"
+                                data-price="{{ product.price|floatformat:2 }}"></span>
+                                <input type="hidden" name="currProduct" value="{{ product.id }}">
+                                <button name="removeItem" type="submit"
+                                class="bg-red-600 hover:bg-red-700 text-white p-2 rounded-md transition duration-200 shadow"
+                                aria-label="Remove item">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7L5 7M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M10 11v6M14 11v6M9 7h6V4H9v3z" />
+                                </svg>
+                                </button>
+                            </div>
+                            </form>
+                        </div>
+                        {% comment %} {% endfor %} {% endcomment %}
+                    {% endwith %}
+                    {% endfor %}
+                {% else %}
+                <div class="h-full min-h-[50vh] flex items-center justify-center">
+                    <p class="text-white text-2xl font-semibold text-center">
+                        Your cart is empty.
+                    </p>
+                </div>                           
+                {% endif %}
+            </div>
+
+            <!-- Cart Summary -->
+            <div class="lg:col-span-1">
+                <div class="bg-gray-800 text-white rounded-lg p-6 sticky top-24 w-full shadow-lg z-10">
+                    <h2 class="text-xl font-semibold mb-4">Cart Summary</h2>
+
+                    <div class="space-y-3 mb-6 sticky top-16">
+                        <!-- Content below the header -->
+                        <div class="flex justify-between">
+                            <span>Subtotal</span>
+                            <span id="subtotal" class="price" data-price="{{ cart.price }}"> </span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Delivery</span>
+                            <span id="tax" class="price" data-price="40">40</span>
+                        </div>
+                        <hr class="border-gray-700" />
+                        <div class="flex justify-between font-semibold text-lg">
+                            <span>Total</span>
+                            <span id="total" class="price" data-price=""></span>
+                        </div>
+                    </div>
+                    {% if products %}
+                        <a href="/checkout">
+                            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition">
+                                Proceed to Checkout
+                            </button>
+                        </a>
+                    {% else %}
+                        <button disabled class="w-full bg-gray-700 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition">
+                            Proceed to Checkout
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Price Formatter -->
+    <script>
+        
+        const price = parseFloat(document.getElementById("subtotal").getAttribute("data-price"));
+        if (price == 0){
+            const tax = document.getElementById("tax").setAttribute("data-price", 0);
+        }
+        const tax = parseFloat(document.getElementById("tax").getAttribute("data-price"));
+        
+        const total = document.getElementById("total")
+        total.setAttribute("data-price", (price + tax).toString());
+        
+        document.querySelectorAll('.price').forEach(el => {
+            const raw = parseFloat(el.dataset.price);
+            if (!isNaN(raw)) {
+                const formatted = new Intl.NumberFormat('en-IN', {
+                    style: 'currency',
+                    currency: 'INR',
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }).format(raw);
+                el.innerText = formatted;
+            }
+        });
+        // const total = price + tax;
+        {% comment %} console.log(total); {% endcomment %}
+        
+        
+    </script>
+    {% endblock content %}
+
+{% comment %} <!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Shopping Cart - Dark Mode</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+    darkMode: 'class'
+    }
+</script>
+</head>
+
+<body class="dark bg-gray-900 text-gray-100 min-h-screen">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-gray-800 shadow-lg">
+        <nav class="container mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+            <!-- Logo and Nav -->
+            <div class="flex items-center space-x-4">
+            <h1 class="text-2xl font-bold">
+                <a href="../../../">MV-M</a>
+            </h1>
+            <div class="hidden md:flex space-x-4">
+                <a href="http://127.0.0.1:8000/" class="hover:text-blue-400 transition">Home</a>
+                <a href="#" class="hover:text-blue-400 transition">Shop</a>
+                <a href="#" class="hover:text-blue-400 transition">Categories</a>
+                <a href="#" class="hover:text-blue-400 transition">Deals</a>
+            </div>
+            </div>
+
+            <!-- Search, Cart, Auth -->
+            <div class="flex items-center space-x-4">
+            <div class="relative">
+                <input type="search" placeholder="Search products..."
+                class="bg-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            <a href="cart">
+                <button class="relative" id="cartButton">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span
+                    class="absolute -top-2 -right-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">0</span>
+                </button>
+            </a>
+
+            {% if name %}
+            <a href="profile" class="text-sm">{{ name }}</a>
+            {% else %}
+            <div class="text-sm">
+                <a href="login">Login</a> / <a href="register">Sign up</a>
+            </div>
+            {% endif %}
+            </div>
+        </div>
+        </nav>
+    </header>
+
+    <!-- Main Section -->
+    <main class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8">Your Cart</h1>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Cart Items -->
+        <div id="cartItems" class="lg:col-span-2">
+            {% if products %}
+            {% for product, items in products %}
+                {% for id, quantity in items.items %}
+                <div
+                    class="mb-4 flex flex-col sm:flex-row items-center gap-6 p-6 bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300">
+                    <!-- Form per item -->
+                    <form action="" method="post" class="flex flex-col sm:flex-row items-center gap-6 w-full">
+                    {% csrf_token %}
+
+                    <!-- Product Image -->
+                    <img src="{{ product.image }}" alt="{{ product.name }}"
+                        class="w-28 h-28 object-cover rounded-md" />
+
+                    <!-- Product Info -->
+                    <div class="flex-1 w-full space-y-2">
+                        <h3 class="text-xl font-semibold">{{ product.name }}</h3>
+                        <div class="flex items-center gap-3">
+                        <button type="submit" name="decrement"
+                            class="bg-gray-700 hover:bg-gray-600 text-white w-8 h-8 rounded shadow-inner">−</button>
+                        <span class="w-10 text-center">{{ quantity }}</span>
+                        <button type="submit" name="increment"
+                            class="bg-gray-700 hover:bg-gray-600 text-white w-8 h-8 rounded shadow-inner">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Price and Remove -->
+                    <div class="flex flex-col items-end gap-2">
+                        <span class="price text-lg font-semibold text-white"
+                        data-price="{{ product.price|floatformat:2 }}"></span>
+                        <input type="hidden" name="currProduct" value="{{ product.id }}">
+                        <input type="text" name="temp" value="{{ product.id }}"
+                        class="text-blue-500 text-center bg-gray-600 rounded-lg w-24" />
+                        <button name="removeItem" type="submit"
+                        class="bg-red-600 hover:bg-red-700 text-white p-2 rounded-md transition duration-200 shadow"
+                        aria-label="Remove item">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7L5 7M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M10 11v6M14 11v6M9 7h6V4H9v3z" />
+                        </svg>
+                        </button>
+                    </div>
+                    </form>
+                </div>
+                {% endfor %}
+            {% endfor %}
+            {% else %}
+            <p class="text-white">Your cart is empty.</p>
+            {% endif %}
+        </div>
+
+        <!-- Cart Summary -->
+        <div class="lg:col-span-1">
+            <div class="bg-gray-800 text-white rounded-lg p-6 sticky top-4 shadow-lg">
+            <h2 class="text-xl font-semibold mb-4">Cart Summary</h2>
+
+            <div class="space-y-3 mb-6">
+                <div class="flex justify-between">
+                <span>Subtotal</span>
+                <span id="subtotal" class="price" data-price="{{ cart.price }}"> </span>
+                </div>
+                <div class="flex justify-between">
+                <span>Tax</span>
+                <span id="tax" class="price" data-price="{{ tax }}"></span>
+                </div>
+                <hr class="border-gray-700" />
+                <div class="flex justify-between font-semibold text-lg">
+                <span>Total</span>
+                <span id="total" class="price" data-price=""></span>
+                </div>
+            </div>
+
+            <button
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition">
+                Proceed to Checkout
+            </button>
+            </div>
+        </div>
+        </div>
+    </main>
+
+    <!-- Price Formatter -->
+    <script>
+        
+        const price = parseFloat(document.getElementById("subtotal").getAttribute("data-price"));
+        const tax = parseFloat(document.getElementById("tax").getAttribute("data-price"));
+        const total = document.getElementById("total")
+        total.setAttribute("data-price", (price + tax).toString());
+        
+        document.querySelectorAll('.price').forEach(el => {
+        const raw = parseFloat(el.dataset.price);
+        if (!isNaN(raw)) {
+            const formatted = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+            }).format(raw);
+            el.innerText = formatted;
+        }
+        });
+        // const total = price + tax;
+        console.log(total);
+        
+
+    </script>
+</body>
+
+</html> {% endcomment %}
